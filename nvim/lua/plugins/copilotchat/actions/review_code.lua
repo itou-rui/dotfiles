@@ -1,15 +1,43 @@
 local copilot_chat_ns = vim.api.nvim_create_namespace("copilot-chat-diagnostics")
+local build_system_prompt = require("plugins.copilotchat.utils.build_system_prompt")
+local get_filetype = require("plugins.copilotchat.utils.get_filetype")
 local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
 
 local new_vertical_window = require("plugins.copilotchat.utils.open_window").new_vertical_window
 
 local function review_code()
-	new_vertical_window('Review the "selected code".', {
-		sticky = {
-			"/SystemPromptReview",
-			"#reply_language:" .. language,
-		},
+	local selection = require("CopilotChat").get_selection()
+
+	local prompt = [[
+Review the "selected code".
+
+**Check for**:
+
+- Unclear or non-conventional naming
+- Comment quality (missing or unnecessary)
+- Complex expressions needing simplification
+- Deep nesting or complex control flow
+- Inconsistent style or formatting
+- Code duplication or redundancy
+- Potential performance issues
+- Error handling gaps
+- Security concerns
+- Breaking of SOLID principles
+
+If no issues are found, confirm the code is well-written and explain why.
+  ]]
+
+	new_vertical_window(prompt, {
+		system_prompt = build_system_prompt({
+			role = "assistant",
+			character = "ai",
+			guideline = { localization = true },
+			specialties = get_filetype(selection and selection.filetype or nil),
+			question_focus = "selection",
+			format = "review",
+		}),
+		sticky = { "#reply_language:" .. language },
 		callback = function(response, source)
 			local diagnostics = {}
 			for line in response:gmatch("[^\r\n]+") do

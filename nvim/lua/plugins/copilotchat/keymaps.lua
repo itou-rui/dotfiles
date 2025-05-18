@@ -53,7 +53,7 @@ return {
 	},
 	{
 		"<leader>acr",
-		require("plugins.copilotchat.actions.code.review"),
+		require("plugins.copilotchat.actions.review_code"),
 		desc = "Review",
 		mode = { "n", "v" },
 	},
