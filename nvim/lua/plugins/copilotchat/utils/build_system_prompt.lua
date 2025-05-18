@@ -18,7 +18,7 @@ end
 --- @field specialties nil | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css")[]
 --- @field guideline nil | Guideline
 --- @field question_focus nil | "selection"
---- @field format nil | "explain"
+--- @field format nil | "explain" | "review"
 
 --- @param opts BuildOptions
 local function build_system_prompt(opts)
