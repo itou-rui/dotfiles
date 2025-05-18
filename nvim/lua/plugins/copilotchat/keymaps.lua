@@ -47,7 +47,7 @@ return {
 	},
 	{
 		"<leader>ace",
-		require("plugins.copilotchat.actions.code.explain"),
+		require("plugins.copilotchat.actions.explain_code"),
 		desc = "Explain",
 		mode = { "n", "v" },
 	},
