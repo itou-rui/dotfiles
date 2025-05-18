@@ -50,6 +50,10 @@ local FILETYPE_CONFIGS = {
 		filetypes = { "typescriptreact" },
 		prompts = { "react", "javascript", "typescript" },
 	},
+	zsh = {
+		filetypes = { "zsh" },
+		prompts = { "zsh" },
+	},
 }
 
 -- Precompute filetype to config mapping for fast lookup
@@ -62,7 +66,7 @@ for _, config in pairs(FILETYPE_CONFIGS) do
 	end
 end
 
----@param filetype string | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua")
+---@param filetype string | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "htmlangular")
 local function get_filetype(filetype)
 	filetype = filetype or vim.bo.filetype
 	local filename = vim.fn.expand("%:t")
