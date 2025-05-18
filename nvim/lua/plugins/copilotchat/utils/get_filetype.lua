@@ -66,8 +66,12 @@ for _, config in pairs(FILETYPE_CONFIGS) do
 	end
 end
 
----@param filetype string | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "htmlangular")
+---@param filetype string | nil | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "htmlangular")
 local function get_filetype(filetype)
+	if filetype == "" then
+		return nil
+	end
+
 	filetype = filetype or vim.bo.filetype
 	local filename = vim.fn.expand("%:t")
 
@@ -86,6 +90,8 @@ local function get_filetype(filetype)
 			end
 		end
 	end
+
+	return nil
 end
 
 return get_filetype
