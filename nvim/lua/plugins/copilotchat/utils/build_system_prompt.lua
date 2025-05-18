@@ -13,8 +13,8 @@ end
 --- @field localization nil | boolean
 
 --- @class BuildOptions
---- @field character nil | "ai"
 --- @field role nil | "assistant" | "teacher" | "reviewer" | "architect" | "debugger" | "DevOps" | "performer" | "tester" | "security"
+--- @field character nil | "ai" | "friendly" | "cute" | "tsundere"
 --- @field specialties nil | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css")[]
 --- @field guideline nil | Guideline
 --- @field question_focus nil | "selection"
