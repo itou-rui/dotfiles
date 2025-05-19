@@ -1,7 +1,4 @@
-local prompts_module = require("plugins.copilotchat.prompts")
-local language = prompts_module.language
-local languages = prompts_module.languages
-
+local system_languages = require("plugins.copilotchat.utils.system_languages")
 local window = require("plugins.copilotchat.utils.window")
 
 local function output_teplate()
@@ -19,9 +16,9 @@ local function output_teplate()
 		if not content or content == "" then
 			return
 		end
-		vim.ui.select(languages, { prompt = "Select content language> " }, function(selected_language)
+		vim.ui.select(system_languages.list, { prompt = "Select content language> " }, function(selected_language)
 			if not selected_language or selected_language == "" then
-				selected_language = language
+				selected_language = system_languages.default
 			end
 
 			window.open_float(

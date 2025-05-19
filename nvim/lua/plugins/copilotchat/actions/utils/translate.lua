@@ -1,10 +1,9 @@
-local prompts_module = require("plugins.copilotchat.prompts")
-local languages = prompts_module.languages
+local system_languages = require("plugins.copilotchat.utils.system_languages")
 local window = require("plugins.copilotchat.utils.window")
 
 ---@param style "vertical" | "float"
 local function translation(style)
-	vim.ui.select(languages, {
+	vim.ui.select(system_languages.list, {
 		prompt = "Select Language> ",
 	}, function(selected_language)
 		if not selected_language or selected_language == "" then

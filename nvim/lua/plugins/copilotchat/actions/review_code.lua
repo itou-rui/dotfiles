@@ -1,8 +1,7 @@
 local copilot_chat_ns = vim.api.nvim_create_namespace("copilot-chat-diagnostics")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local get_filetype = require("plugins.copilotchat.utils.get_filetype")
-local prompts_module = require("plugins.copilotchat.prompts")
-local language = prompts_module.language
+local system_languages = require("plugins.copilotchat.utils.system_languages")
 local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
 
@@ -38,7 +37,7 @@ local function review_code()
 			format = "review",
 		}),
 		sticky = sticky.build({
-			reply_language = language,
+			reply_language = system_languages.default,
 		}),
 		selection = function(source)
 			local select = require("CopilotChat.select")

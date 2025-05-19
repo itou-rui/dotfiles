@@ -1,5 +1,4 @@
-local prompts_module = require("plugins.copilotchat.prompts")
-local language = prompts_module.language
+local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local get_filetype = require("plugins.copilotchat.utils.get_filetype")
 local sticky = require("plugins.copilotchat.utils.sticky")
@@ -24,7 +23,7 @@ local function explain_code()
 						format = "explain",
 					}),
 					sticky = sticky.build({
-						reply_language = language,
+						reply_language = system_languages.default,
 						file = file_contexts,
 					}),
 					selection = function(source)
