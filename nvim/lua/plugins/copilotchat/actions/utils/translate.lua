@@ -1,7 +1,6 @@
 local prompts_module = require("plugins.copilotchat.prompts")
 local languages = prompts_module.languages
-
-local open_window = require("plugins.copilotchat.utils.open_window")
+local window = require("plugins.copilotchat.utils.window")
 
 ---@param style "vertical" | "float"
 local function translation(style)
@@ -19,11 +18,11 @@ local function translation(style)
 		}
 
 		if style == "vertical" then
-			open_window.new_vertical_window(prompt, {
+			window.open_vertical(prompt, {
 				sticky = sticky,
 			})
 		elseif style == "float" then
-			open_window.new_float_window(prompt, {
+			window.open_vertical(prompt, {
 				sticky = sticky,
 			})
 		end
