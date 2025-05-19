@@ -18,6 +18,11 @@ M.reset_chat = function()
 	copilotchat.reset()
 end
 
+M.clear = function()
+	M.reset_title()
+	M.reset_chat()
+end
+
 ---@param prompt string | nil
 ---@param opts CopilotChat.config
 M.open = function(prompt, opts)

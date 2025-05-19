@@ -15,6 +15,14 @@ return {
 		mode = { "n", "v" },
 	},
 
+	-- Clear
+	{
+		"<leader>ax",
+		require("plugins.copilotchat.utils.window").clear,
+		desc = "Clear",
+		mode = { "n", "v" },
+	},
+
 	-- List chat history
 	{
 		"<leader>ah",
