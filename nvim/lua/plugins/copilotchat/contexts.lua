@@ -43,7 +43,7 @@ M.contexts = {
 		resolve = function(input)
 			return {
 				{
-					content = (input or "en"):match("(%a+)$-"),
+					content = input or system_languages.default,
 					filename = "Reply_Language",
 					filetype = "text",
 				},
@@ -61,7 +61,7 @@ M.contexts = {
 		resolve = function(input)
 			return {
 				{
-					content = (input or "en"):match("(%a+)$-"),
+					content = input or system_languages.default,
 					filename = "Content_Language",
 					filetype = "text",
 				},

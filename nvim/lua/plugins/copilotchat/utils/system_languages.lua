@@ -1,11 +1,51 @@
+---@alias LanguageCode "en"|"ja"|"fr"|"de"|"es"|"it"|"pt"|"ru"|"zh"|"ko"
+---@alias LanguageName "English"|"Japanese"|"French"|"German"|"Spanish"|"Italian"|"Portuguese"|"Russian"|"Chinese (Simplified)"|"Korean"
+
+---@class SystemLanguages
+---@field table table<LanguageCode, LanguageName>
+---@field codes LanguageCode[]
+---@field list LanguageName[]
 local M = {}
 
-local raw_list = vim.fn.system("defaults read -g AppleLanguages")
+local function get_system_languages()
+	if vim.fn.has("mac") == 1 then
+		local raw_list = vim.fn.system("defaults read -g AppleLanguages")
+		local langs = {}
+		for lang in raw_list:gmatch('"(.-)"') do
+			table.insert(langs, lang)
+		end
+		return langs
+	elseif vim.fn.has("unix") == 1 then
+		local lang = os.getenv("LANG") or ""
+		return { lang:match("^[^_.]+") or "en" }
+	elseif vim.fn.has("win32") == 1 then
+		local lang = os.getenv("LANG") or os.getenv("LANGUAGE") or ""
+		return { lang:match("^[^_.]+") or "en" }
+	else
+		return { "en" }
+	end
+end
 
-M.raw = raw_list
-M.list = vim.split(raw_list:gsub("[%(%)]", ""):gsub('"', ""):gsub("%s+", ""), ",")
+M.raw_lang = get_system_languages()
 
----@type string
-M.default = (raw_list:match('"(.-)"')):match("(%a+)$-")
+M.table = {
+	en = "English",
+	ja = "Japanese",
+	fr = "French",
+	de = "German",
+	es = "Spanish",
+	it = "Italian",
+	pt = "Portuguese",
+	ru = "Russian",
+	zh = "Chinese (Simplified)",
+	ko = "Korean",
+}
+
+M.codes = vim.tbl_keys(M.table)
+M.list = vim.tbl_values(M.table)
+
+local first_lang = M.raw_lang[1] or "en"
+local lang_code = first_lang:match("^(%a+)")
+M.default = M.list[lang_code] or M.list["en"]
 
 return M
