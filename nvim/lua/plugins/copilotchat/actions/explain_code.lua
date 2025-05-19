@@ -1,6 +1,6 @@
 local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
-local build_system_prompt = require("plugins.copilotchat.utils.build_system_prompt")
+local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local get_filetype = require("plugins.copilotchat.utils.get_filetype")
 local new_float_window = require("plugins.copilotchat.utils.open_window").new_float_window
 
@@ -20,7 +20,7 @@ local function explain_code()
 				vim.list_extend(sticky, file_tags)
 
 				new_float_window("Write an explanation for the selected code as paragraphs of text.", {
-					system_prompt = build_system_prompt({
+					system_prompt = system_prompt.build({
 						role = "teacher",
 						character = "ai",
 						guideline = { localization = true },

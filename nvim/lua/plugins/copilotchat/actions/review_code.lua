@@ -1,5 +1,5 @@
 local copilot_chat_ns = vim.api.nvim_create_namespace("copilot-chat-diagnostics")
-local build_system_prompt = require("plugins.copilotchat.utils.build_system_prompt")
+local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local get_filetype = require("plugins.copilotchat.utils.get_filetype")
 local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
@@ -29,7 +29,7 @@ If no issues are found, confirm the code is well-written and explain why.
   ]]
 
 	new_vertical_window(prompt, {
-		system_prompt = build_system_prompt({
+		system_prompt = system_prompt({
 			role = "assistant",
 			character = "ai",
 			guideline = { localization = true },
