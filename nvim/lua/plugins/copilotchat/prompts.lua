@@ -1,3 +1,5 @@
+local system_prompt = require("plugins.copilotchat.utils.system_prompt")
+
 -- This file contains the prompt templates for the LLMs.
 local M = {}
 
@@ -10,11 +12,6 @@ local function load_prompt(file_path)
 	file:close()
 	return content
 end
-
--- MacOS Only
-local languages_raw = vim.fn.system("defaults read -g AppleLanguages")
-local languages = vim.split(languages_raw:gsub("[%(%)]", ""):gsub('"', ""):gsub("%s+", ""), ",")
-local language = (languages_raw:match('"(.-)"') or "en"):match("(%a+)$-")
 
 local base_instructions = load_prompt(
 	vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/instructions/base.md"
@@ -94,9 +91,5 @@ M.prompts = {
 			.. load_prompt(vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/chat/free_chat.md"),
 	},
 }
-
--- Export language and languages for use in other modules
-M.language = language
-M.languages = languages
 
 return M

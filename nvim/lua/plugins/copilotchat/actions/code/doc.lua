@@ -1,14 +1,12 @@
-local prompts_module = require("plugins.copilotchat.prompts")
-local languages = prompts_module.languages
-local language = prompts_module.language
+local system_languages = require("plugins.copilotchat.utils.system_languages")
 local window = require("plugins.copilotchat.utils.window")
 
 local function doc_code()
-	vim.ui.select(languages, {
+	vim.ui.select(system_languages.list, {
 		prompt = "Select content language> ",
 	}, function(selected_language)
 		if not selected_language or selected_language == "" then
-			selected_language = language
+			selected_language = system_languages.default
 		end
 
 		local sticky = {

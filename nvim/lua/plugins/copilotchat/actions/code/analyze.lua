@@ -1,12 +1,11 @@
-local prompts_module = require("plugins.copilotchat.prompts")
-local language = prompts_module.language
+local system_languages = require("plugins.copilotchat.utils.system_languages")
 local window = require("plugins.copilotchat.utils.window")
 
 local function analyze_code()
 	local sticky = {
 		"/SystemPromptAnalyzeCode",
-		"#reply_language:" .. language,
-		"#content_language:" .. language,
+		"#reply_language:" .. system_languages.default,
+		"#content_language:" .. system_languages.default,
 	}
 
 	vim.ui.select({ "Track variable" }, {
