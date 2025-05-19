@@ -94,7 +94,7 @@ local function on_commit_language_selected(commit_type, base_branch, language)
 end
 
 local function select_commit_language(commit_type, base_branch)
-	vim.ui.select(system_languages.list, {
+	vim.ui.select(system_languages.names, {
 		prompt = "Select language> ",
 	}, function(language)
 		on_commit_language_selected(commit_type, base_branch, language)

@@ -7,7 +7,7 @@ local function pullrequest()
 			return
 		end
 
-		vim.ui.select(system_languages.list, { prompt = "Select content language> " }, function(selected_language)
+		vim.ui.select(system_languages.names, { prompt = "Select content language> " }, function(selected_language)
 			if not selected_language or selected_language == "" then
 				selected_language = system_languages.default
 			end

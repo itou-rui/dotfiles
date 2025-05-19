@@ -4,7 +4,7 @@
 ---@class SystemLanguages
 ---@field table table<LanguageCode, LanguageName>
 ---@field codes LanguageCode[]
----@field list LanguageName[]
+---@field names LanguageName[]
 local M = {}
 
 local function get_system_languages()
@@ -42,10 +42,10 @@ M.table = {
 }
 
 M.codes = vim.tbl_keys(M.table)
-M.list = vim.tbl_values(M.table)
+M.names = vim.tbl_values(M.table)
 
 local first_lang = M.raw_lang[1] or "en"
-local lang_code = first_lang:match("^(%a+)")
-M.default = M.list[lang_code] or M.list["en"]
+local lang_code = first_lang:match("^([%a]+)") or "en"
+M.default = M.table[lang_code] or M.table["en"]
 
 return M

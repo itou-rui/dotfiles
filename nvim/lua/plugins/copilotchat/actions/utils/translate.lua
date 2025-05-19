@@ -3,7 +3,7 @@ local window = require("plugins.copilotchat.utils.window")
 
 ---@param style "vertical" | "float"
 local function translation(style)
-	vim.ui.select(system_languages.list, {
+	vim.ui.select(system_languages.names, {
 		prompt = "Select Language> ",
 	}, function(selected_language)
 		if not selected_language or selected_language == "" then

@@ -2,7 +2,7 @@ local system_languages = require("plugins.copilotchat.utils.system_languages")
 local window = require("plugins.copilotchat.utils.window")
 
 local function doc_code()
-	vim.ui.select(system_languages.list, {
+	vim.ui.select(system_languages.names, {
 		prompt = "Select content language> ",
 	}, function(selected_language)
 		if not selected_language or selected_language == "" then
