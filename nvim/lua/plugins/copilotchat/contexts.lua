@@ -1,12 +1,6 @@
--- This file contains the contexts for CopilotChat
-local M = {}
-
--- Import language settings from prompts
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 
--- AI characters (chat only)
-local characters = { "Friendly", "Sociable", "Humorous", "Philosophical", "Cute", "Tsundere" }
-local roles = { "Teacher", "Mentor", "Explainer", "Teammate", "Assistant" }
+local M = {}
 
 M.contexts = {
 	file = {
@@ -68,47 +62,6 @@ M.contexts = {
 			}
 		end,
 	},
-
-	-- Chat (<leader>acch) only
-	character = {
-		description = "Characters that AI behaves in conversation.",
-		input = function(callback)
-			vim.ui.select(characters, {
-				prompt = "Select character> ",
-			}, callback)
-		end,
-		resolve = function(input)
-			return {
-				{
-					content = (input or "en"):match("(%a+)$-"),
-					filename = "Character",
-					filetype = "text",
-				},
-			}
-		end,
-	},
-
-	role = {
-		description = "Position and role of AI.",
-		input = function(callback)
-			vim.ui.select(roles, {
-				prompt = "Select Role> ",
-			}, callback)
-		end,
-		resolve = function(input)
-			return {
-				{
-					content = (input or "en"):match("(%a+)$-"),
-					filename = "Role",
-					filetype = "text",
-				},
-			}
-		end,
-	},
 }
-
--- Export characters and roles for use in other modules
-M.characters = characters
-M.roles = roles
 
 return M
