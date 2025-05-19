@@ -30,7 +30,7 @@ M.contexts = {
 	reply_language = {
 		description = "Specifies the language in which AI responds.",
 		input = function(callback)
-			vim.ui.select(system_languages.list, {
+			vim.ui.select(system_languages.names, {
 				prompt = "Select language> ",
 			}, callback)
 		end,
@@ -48,7 +48,7 @@ M.contexts = {
 	content_language = {
 		description = "Specifies the language in which AI generates content.",
 		input = function(callback)
-			vim.ui.select(system_languages.list, {
+			vim.ui.select(system_languages.names, {
 				prompt = "Select language> ",
 			}, callback)
 		end,
