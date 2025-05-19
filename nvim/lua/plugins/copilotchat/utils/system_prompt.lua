@@ -31,25 +31,26 @@ M.build = function(opts)
 		return config_path .. subpath
 	end
 
+	local prompt_parts = {}
+
 	-- Role
 	local role = opts.role or "assistant"
-	local system_prompt = load_prompt(prompt_path("roles/" .. role .. ".md"))
-		.. "\n"
-		.. load_prompt(prompt_path("guidelines/base.md"))
+	table.insert(prompt_parts, load_prompt(prompt_path("roles/" .. role .. ".md")))
+	table.insert(prompt_parts, load_prompt(prompt_path("guidelines/base.md")))
 
 	-- Character
 	local character = opts.character or "ai"
-	system_prompt = system_prompt .. "\n" .. load_prompt(prompt_path("characters/" .. character .. ".md"))
+	table.insert(prompt_parts, load_prompt(prompt_path("characters/" .. character .. ".md")))
 
 	-- Specialties
-	system_prompt = system_prompt .. "\n" .. load_prompt(prompt_path("specialties/base.md"))
-	local specialties = filetype.add_related(opts.specialties)
-	if specialties then
+	table.insert(prompt_parts, load_prompt(prompt_path("specialties/base.md")))
+	local specialties = filetype.add_related(opts.specialty)
+	if specialties and #specialties > 0 then
 		local failed_languages = {}
 		for _, specialty in ipairs(specialties) do
 			local specialty_prompt = load_prompt(prompt_path("specialties/" .. specialty .. ".md"))
 			if specialty_prompt ~= "" then
-				system_prompt = system_prompt .. "\n" .. specialty_prompt
+				table.insert(prompt_parts, specialty_prompt)
 			else
 				table.insert(failed_languages, specialty)
 			end
@@ -63,26 +64,24 @@ M.build = function(opts)
 	-- Guideline
 	if opts.guideline then
 		if opts.guideline.change_code then
-			system_prompt = system_prompt .. "\n" .. load_prompt(prompt_path("guidelines/change_code.md"))
+			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/change_code.md")))
 		end
 		if opts.guideline.localization then
-			system_prompt = system_prompt .. "\n" .. load_prompt(prompt_path("guidelines/localization.md"))
+			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/localization.md")))
 		end
 	end
 
 	-- Question Focus
 	if opts.question_focus then
-		system_prompt = system_prompt
-			.. "\n"
-			.. load_prompt(prompt_path("question_focus/" .. opts.question_focus .. ".md"))
+		table.insert(prompt_parts, load_prompt(prompt_path("question_focus/" .. opts.question_focus .. ".md")))
 	end
 
 	-- Format
 	if opts.format then
-		system_prompt = system_prompt .. "\n" .. load_prompt(prompt_path("formats/" .. opts.format .. ".md"))
+		table.insert(prompt_parts, load_prompt(prompt_path("formats/" .. opts.format .. ".md")))
 	end
 
-	return system_prompt
+	return table.concat(prompt_parts, "\n")
 end
 
 return M
