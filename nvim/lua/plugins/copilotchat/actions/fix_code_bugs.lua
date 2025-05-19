@@ -27,7 +27,7 @@ local function fix_code_bugs()
 						role = "debugger",
 						character = "ai",
 						guideline = { change_code = true, localization = true },
-						specialties = selection and selection.filetype or nil,
+						specialty = selection and selection.filetype or nil,
 						format = "fix_code_bugs",
 					}),
 					sticky = sticky.build({
