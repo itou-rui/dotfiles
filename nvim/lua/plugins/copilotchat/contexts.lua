@@ -2,8 +2,7 @@
 local M = {}
 
 -- Import language settings from prompts
-local prompts_module = require("plugins.copilotchat.prompts")
-local languages = prompts_module.languages
+local system_languages = require("plugins.copilotchat.utils.system_languages")
 
 -- AI characters (chat only)
 local characters = { "Friendly", "Sociable", "Humorous", "Philosophical", "Cute", "Tsundere" }
@@ -37,7 +36,7 @@ M.contexts = {
 	reply_language = {
 		description = "Specifies the language in which AI responds.",
 		input = function(callback)
-			vim.ui.select(languages, {
+			vim.ui.select(system_languages.list, {
 				prompt = "Select language> ",
 			}, callback)
 		end,
@@ -55,7 +54,7 @@ M.contexts = {
 	content_language = {
 		description = "Specifies the language in which AI generates content.",
 		input = function(callback)
-			vim.ui.select(languages, {
+			vim.ui.select(system_languages.list, {
 				prompt = "Select language> ",
 			}, callback)
 		end,
