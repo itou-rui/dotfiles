@@ -1,7 +1,12 @@
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
+local chat_history = require("plugins.copilotchat.utils.chat_history")
 local sticky = require("plugins.copilotchat.utils.sticky")
 local window = require("plugins.copilotchat.utils.window")
+
+local prompt = [[
+Write an explanation for the selected code as paragraphs of text.
+]]
 
 local function explain_code()
 	local selection = require("CopilotChat").get_selection()
@@ -28,6 +33,13 @@ local function explain_code()
 					selection = function(source)
 						local select = require("CopilotChat.select")
 						return select.visual(source) or select.buffer(source)
+					end,
+					callback = function(response)
+						chat_history.save(response, {
+							used_prompt = prompt,
+							tag = "Explain",
+						})
+						return response
 					end,
 				})
 			end,

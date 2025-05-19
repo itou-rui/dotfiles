@@ -2,6 +2,7 @@ M = {}
 
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
+local chat_history = require("plugins.copilotchat.utils.chat_history")
 local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
 
@@ -24,6 +25,36 @@ local function generate_system_prompt(role, character, specialty)
 	return capitalize(character) .. capitalize(specialty) .. capitalize(role)
 end
 
+local function fallback_chat_title(role, character, specialty)
+	-- Capitalize helper (same as in generate_system_prompt)
+	local function capitalize(str)
+		return (str and str ~= "") and (str:gsub("^%l", string.upper)) or ""
+	end
+
+	-- Handle "ai" character/role context
+	if character == "ai" or role == "ai" then
+		return "New chat with AI about " .. (specialty and capitalize(specialty) or "General")
+	end
+
+	-- Compose title with available context
+	local parts = {}
+	if character and character ~= "" then
+		table.insert(parts, capitalize(character))
+	end
+	if role and role ~= "" then
+		table.insert(parts, capitalize(role))
+	end
+	if specialty and specialty ~= "" then
+		table.insert(parts, capitalize(specialty))
+	end
+
+	if #parts > 0 then
+		return "New chat about " .. table.concat(parts, " ")
+	else
+		return "New chat"
+	end
+end
+
 local function open_chat_window(role, character, specialty, selection, style)
 	local fallback_selection = function(source)
 		local select = require("CopilotChat.select")
@@ -41,15 +72,25 @@ local function open_chat_window(role, character, specialty, selection, style)
 			input = ""
 		end
 
+		local callback = function(response)
+			chat_history.save(response, {
+				used_prompt = input or fallback_chat_title(role, character, specialty),
+				tag = "Instruction",
+			})
+			return response
+		end
+
 		if style == "vertical" then
 			window.open_vertical(input, {
 				sticky = stickies,
-				callback = fallback_selection,
+				selection = fallback_selection,
+				callback = callback,
 			})
 		else
 			window.open_float(input, {
 				sticky = stickies,
-				callback = fallback_selection,
+				selection = fallback_selection,
+				callback = callback,
 			})
 		end
 	end)
