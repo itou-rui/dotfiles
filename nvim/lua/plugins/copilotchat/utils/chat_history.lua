@@ -1,6 +1,45 @@
-local delete_history = require("plugins.copilotchat.utils.chat_history.delete")
-local CHAT_HISTORY_DIR = delete_history.CHAT_HISTORY_DIR
-local delete_old_files = delete_history.old_files
+local M = {}
+
+local chat = require("CopilotChat")
+local scandir = require("plenary.scandir")
+local system_languages = require("plugins.copilotchat.utils.system_languages")
+local CHAT_HISTORY_DIR = vim.fn.stdpath("data") .. "/copilotchat_history"
+
+M.delete = function(days)
+	local files = scandir.scan_dir(CHAT_HISTORY_DIR, {
+		search_pattern = "%.json$",
+		depth = 1,
+	})
+
+	local days_num = tonumber(days)
+	if not days_num or days_num < 1 or days_num > 30 then
+		days_num = 1
+	end
+
+	local current_time = os.time()
+	local threshold = current_time - (days_num * 24 * 60 * 60)
+	local deleted_count = 0
+
+	for _, file in ipairs(files) do
+		local mtime = vim.fn.getftime(file)
+
+		if mtime < threshold then
+			local success, err = os.remove(file)
+			if success then
+				deleted_count = deleted_count + 1
+			else
+				vim.notify("Failed to delete old chat file: " .. err, vim.log.levels.WARN)
+			end
+		end
+	end
+
+	if deleted_count > 0 then
+		vim.notify(
+			"Deleted " .. deleted_count .. " old chat files (older than " .. days_num .. " days)",
+			vim.log.levels.INFO
+		)
+	end
+end
 
 local function decode_title(encoded_title)
 	-- Extract the timestamp part (before first underscore)
@@ -67,13 +106,11 @@ local function fmt_relative_time(timestamp)
 	end
 end
 
-local function list_history()
+M.list = function()
 	local snacks = require("snacks")
-	local chat = require("CopilotChat")
-	local scandir = require("plenary.scandir")
 
 	-- Delete old chat files first
-	delete_old_files()
+	M.delete()
 
 	local files = scandir.scan_dir(CHAT_HISTORY_DIR, {
 		search_pattern = "%.json$",
@@ -130,7 +167,7 @@ local function list_history()
 								-- Refresh the picker to show updated list
 								picker:close()
 								vim.schedule(function()
-									list_history()
+									M.list()
 								end)
 							else
 								vim.notify("Failed to delete: " .. (err or "unknown error"), vim.log.levels.ERROR)
@@ -215,8 +252,65 @@ local function list_history()
 	})
 end
 
-return {
-	list_history = list_history,
-	decode_title = decode_title,
-	fmt_relative_time = fmt_relative_time,
-}
+local title_prompt = [[
+Generate a concise title in %s that accurately describes what the AI is doing with the given prompt or request.
+
+Requirements:
+- Start with an appropriate action verb (e.g., explain, implement, describe, analyze)
+- Focus on the relationship between the prompt and response (what was the AI asked to do?)
+- If the prompt describes code or functionality, focus on that functionality rather than the conversation itself
+- Keep the entire title within 10 words including the verb
+- Use natural, descriptive language instead of keyword lists
+- Use hyphens to join words in the title
+- Do not include special characters other than hyphens
+- Output only the title without any explanations or formatting
+
+Prompt (what the user asked):
+```
+%s
+```
+
+Response (what the AI provided):
+```
+%s
+```
+]]
+
+---@class Opts
+---@field used_prompt nil|string
+---@field tag "Unknown"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"Translate"|"Write"
+
+---@param response string
+---@param opts Opts|nil
+M.save = function(response, opts)
+	if response == nil or response == "" then
+		vim.notify("Could not save because of no response.", vim.log.levels.WARN)
+		return
+	end
+
+	if vim.g.copilot_chat_title then
+		chat.save(vim.g.copilot_chat_title)
+		return
+	end
+
+	if opts == nil then
+		opts = { used_prompt = "", tag = "Unknown" }
+	end
+
+	-- Use AI to generate prompt title based on first AI response to user question
+	chat.ask(vim.trim(title_prompt:format(system_languages.default, opts.used_prompt, response)), {
+		callback = function(gen_response)
+			-- Generate timestamp in format YYYYMMDD_HHMMSS
+			local timestamp = os.date("%Y%m%d_%H%M%S")
+			-- Encode the generated title to make it safe as a filename
+			local title = opts.tag .. ": " .. gen_response
+			local safe_title = vim.base64.encode(title):gsub("/", "_"):gsub("+", "-"):gsub("=", "")
+			vim.g.copilot_chat_title = timestamp .. "_" .. vim.trim(safe_title)
+			chat.save(vim.g.copilot_chat_title)
+			return gen_response
+		end,
+		headless = true, -- Disable updating chat buffer and history with this question
+	})
+end
+
+return M
