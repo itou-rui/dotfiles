@@ -1,5 +1,6 @@
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
+local chat_history = require("plugins.copilotchat.utils.chat_history")
 local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
 
@@ -35,6 +36,13 @@ local function fix_code_bugs()
 						file = sticky.build_file_contexts(selected_files),
 						register = "system_clipboard",
 					}),
+					callback = function(response)
+						chat_history.save(response, {
+							used_prompt = prompt,
+							tag = "Analyze",
+						})
+						return response
+					end,
 				})
 			end,
 		},
