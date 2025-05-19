@@ -278,7 +278,7 @@ Response (what the AI provided):
 
 ---@class Opts
 ---@field used_prompt nil|string
----@field tag "Unknown"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"Translate"|"Write"
+---@field tag "NewChat"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"Translate"|"Write"
 
 ---@param response string
 ---@param opts Opts|nil
@@ -294,7 +294,7 @@ M.save = function(response, opts)
 	end
 
 	if opts == nil then
-		opts = { used_prompt = "", tag = "Unknown" }
+		opts = { used_prompt = "", tag = "NewChat" }
 	end
 
 	-- Use AI to generate prompt title based on first AI response to user question
