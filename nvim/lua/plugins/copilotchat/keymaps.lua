@@ -77,7 +77,7 @@ return {
 	{ "<leader>ag", "", desc = "Git", mode = { "n", "v" } },
 	{
 		"<leader>agc",
-		require("plugins.copilotchat.actions.git.commit"),
+		require("plugins.copilotchat.actions.commit").execute,
 		desc = "Commit",
 		mode = { "n", "v" },
 	},
