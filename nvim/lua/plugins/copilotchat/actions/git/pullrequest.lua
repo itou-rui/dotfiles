@@ -2,7 +2,7 @@ local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
 local languages = prompts_module.languages
 
-local new_float_window = require("plugins.copilotchat.utils.open_window").new_float_window
+local window = require("plugins.copilotchat.utils.window")
 
 local function pullrequest()
 	vim.ui.select({ "main", "develop" }, { prompt = "Select base branch> " }, function(selected_branch)
@@ -15,7 +15,7 @@ local function pullrequest()
 				selected_language = language
 			end
 
-			new_float_window("Create the contents of a 'Pull Request' based on the contents of the given Diff.", {
+			window.open_float("Create the contents of a 'Pull Request' based on the contents of the given Diff.", {
 				sticky = {
 					"/SystemPromptGenerate",
 					"#content_language:" .. selected_language,

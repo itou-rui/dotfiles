@@ -3,8 +3,7 @@ local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local get_filetype = require("plugins.copilotchat.utils.get_filetype")
 local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
-
-local new_vertical_window = require("plugins.copilotchat.utils.open_window").new_vertical_window
+local window = require("plugins.copilotchat.utils.window")
 
 local function review_code()
 	local selection = require("CopilotChat").get_selection()
@@ -28,8 +27,8 @@ Review the "selected code".
 If no issues are found, confirm the code is well-written and explain why.
   ]]
 
-	new_vertical_window(prompt, {
-		system_prompt = system_prompt({
+	window.open_vertical(prompt, {
+		system_prompt = system_prompt.build({
 			role = "assistant",
 			character = "ai",
 			guideline = { localization = true },

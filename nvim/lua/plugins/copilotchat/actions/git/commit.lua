@@ -2,7 +2,7 @@ local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
 local languages = prompts_module.languages
 
-local new_float_window = require("plugins.copilotchat.utils.open_window").new_float_window
+local window = require("plugins.copilotchat.utils.window")
 
 local function commit()
 	vim.ui.select({ "Normal", "WIP", "Normal Merge", "Squash Merge" }, {
@@ -66,7 +66,7 @@ local function commit()
 							.. ' --reverse --pretty="%an -> %s"`'
 					)
 
-					new_float_window(prompt, {
+					window.open_float(prompt, {
 						sticky = sticky_files,
 						selection = selection,
 					})
@@ -75,7 +75,7 @@ local function commit()
 			end
 
 			--
-			new_float_window(prompt, {
+			window.open_float(prompt, {
 				sticky = sticky_files,
 				selection = selection,
 			})

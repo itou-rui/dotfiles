@@ -1,8 +1,7 @@
 local prompts_module = require("plugins.copilotchat.prompts")
 local languages = prompts_module.languages
 local language = prompts_module.language
-
-local new_vertical_window = require("plugins.copilotchat.utils.open_window").new_vertical_window
+local window = require("plugins.copilotchat.utils.window")
 
 local function doc_code()
 	vim.ui.select(languages, {
@@ -28,7 +27,7 @@ local function doc_code()
 					end, selected_files)
 					vim.list_extend(sticky, file_tags)
 
-					new_vertical_window('Generate documentation comments for the "selected content".', {
+					window.open_vertical('Generate documentation comments for the "selected content".', {
 						sticky = sticky,
 					})
 				end,

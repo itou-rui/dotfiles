@@ -4,13 +4,13 @@ return {
 	{ "<leader>aw", "", desc = "Toggle window", mode = { "n", "v" } },
 	{
 		"<leader>awv",
-		require("plugins.copilotchat.utils.open_window").toggle_vertical_window,
+		require("plugins.copilotchat.utils.window").toggle_vertical,
 		desc = "Vertical",
 		mode = { "n", "v" },
 	},
 	{
 		"<leader>awf",
-		require("plugins.copilotchat.utils.open_window").toggle_inline_window,
+		require("plugins.copilotchat.utils.window").toggle_float,
 		desc = "Float",
 		mode = { "n", "v" },
 	},

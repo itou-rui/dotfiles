@@ -2,7 +2,7 @@ local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local get_filetype = require("plugins.copilotchat.utils.get_filetype")
-local new_vertical_window = require("plugins.copilotchat.utils.open_window").new_vertical_window
+local window = require("plugins.copilotchat.utils.window")
 
 local prompt = [[
 Fix the bug based on the given stack trace (`vim_register_0`).
@@ -36,7 +36,7 @@ local function fix_code_bugs()
 				end, selected_files)
 				vim.list_extend(sticky, file_tags)
 
-				new_vertical_window(prompt, {
+				window.open(prompt, {
 					system_prompt = system_prompt.build({
 						role = "debugger",
 						character = "ai",

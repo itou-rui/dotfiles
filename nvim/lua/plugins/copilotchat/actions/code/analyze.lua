@@ -1,7 +1,6 @@
 local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
-
-local new_float_window = require("plugins.copilotchat.utils.open_window").new_float_window
+local window = require("plugins.copilotchat.utils.window")
 
 local function analyze_code()
 	local sticky = {
@@ -33,7 +32,7 @@ local function analyze_code()
 						prompt = "Please analyze the provided file to Selected **" .. action .. "** and reveal details."
 					end
 
-					new_float_window(prompt, {
+					window.open_vertical(prompt, {
 						sticky = sticky,
 					})
 				end,

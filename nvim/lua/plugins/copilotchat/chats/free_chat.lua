@@ -5,7 +5,7 @@ local contexts_module = require("plugins.copilotchat.contexts")
 local characters = contexts_module.characters
 local roles = contexts_module.roles
 
-local new_window = require("plugins.copilotchat.utils.open_window").new_window
+local new_window = require("plugins.copilotchat.utils.window").new_window
 
 local function free_chat()
 	vim.ui.select(characters, { prompt = "Select character> " }, function(character)
