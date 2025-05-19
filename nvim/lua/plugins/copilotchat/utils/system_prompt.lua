@@ -16,12 +16,12 @@ end
 --- @field localization nil | boolean
 
 --- @class BuildOptions
---- @field role nil | "assistant" | "teacher" | "reviewer" | "architect" | "debugger" | "DevOps" | "performer" | "tester" | "security"
+--- @field role nil | "assistant" | "teacher" | "reviewer" | "architect" | "debugger" | "DevOps" | "performer" | "tester" | "security" | "commiter"
 --- @field character nil | "ai" | "friendly" | "cute" | "tsundere"
---- @field specialty nil | false | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css")
+--- @field specialty nil | false | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "gitcommit")
 --- @field guideline nil | Guideline
 --- @field question_focus nil | "selection"
---- @field format nil | "explain" | "review" | "fix_code_bugs"
+--- @field format nil | "explain" | "review" | "fix_code_bugs" | "commit"
 
 M.roles = {
 	"assistant",
@@ -33,6 +33,7 @@ M.roles = {
 	"performer",
 	"tester",
 	"security",
+	"commiter",
 }
 
 M.characters = {

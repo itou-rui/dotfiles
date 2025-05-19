@@ -256,7 +256,6 @@ local title_prompt = [[
 Generate a concise title in %s that accurately describes what the AI is doing with the given prompt or request.
 
 Requirements:
-- Start with an appropriate action verb (e.g., explain, implement, describe, analyze)
 - Focus on the relationship between the prompt and response (what was the AI asked to do?)
 - If the prompt describes code or functionality, focus on that functionality rather than the conversation itself
 - Keep the entire title within 10 words including the verb
@@ -278,7 +277,7 @@ Response (what the AI provided):
 
 ---@class Opts
 ---@field used_prompt nil|string
----@field tag "NewChat"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"Translate"|"Write"
+---@field tag "NewChat"|"Commit"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"Translate"|"Write"
 
 ---@param response string
 ---@param opts Opts|nil
