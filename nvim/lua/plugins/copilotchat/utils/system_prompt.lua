@@ -23,6 +23,42 @@ end
 --- @field question_focus nil | "selection"
 --- @field format nil | "explain" | "review" | "fix_code_bugs"
 
+M.roles = {
+	"assistant",
+	"teacher",
+	"reviewer",
+	"architect",
+	"debugger",
+	"DevOps",
+	"performer",
+	"tester",
+	"security",
+}
+
+M.characters = {
+	"ai",
+	"friendly",
+	"cute",
+	"tsundere",
+}
+
+M.specialties = (function()
+	local specialties_set = {}
+	for _, config in pairs(filetype.FILETYPE_CONFIGS) do
+		if config.prompts then
+			for _, prompt in ipairs(config.prompts) do
+				specialties_set[prompt] = true
+			end
+		end
+	end
+	local specialties = {}
+	for specialty, _ in pairs(specialties_set) do
+		table.insert(specialties, specialty)
+	end
+	table.sort(specialties)
+	return specialties
+end)()
+
 --- @param opts BuildOptions
 M.build = function(opts)
 	-- Helper to build prompt path
