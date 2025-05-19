@@ -3,6 +3,7 @@ local language = prompts_module.language
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local get_filetype = require("plugins.copilotchat.utils.get_filetype")
 local window = require("plugins.copilotchat.utils.window")
+local sticky = require("plugins.copilotchat.utils.sticky")
 
 local prompt = [[
 Fix the bug based on the given stack trace (`vim_register_0`).
@@ -19,23 +20,10 @@ Fix the bug based on the given stack trace (`vim_register_0`).
 
 local function fix_code_bugs()
 	local selection = require("CopilotChat").get_selection()
-	local sticky = {
-		"/SystemPromptFixBugs",
-		"#reply_language:" .. language,
-		"#register:0",
-	}
-
 	require("fzf-lua").files({
 		prompt = "Related Files> ",
 		actions = {
 			["default"] = function(selected_files)
-				selected_files = selected_files or {}
-				local file_tags = vim.tbl_map(function(f)
-					local clean = f:gsub("^%s*", ""):gsub("^[^%w%./\\-_]+ *", "")
-					return "#file:" .. clean
-				end, selected_files)
-				vim.list_extend(sticky, file_tags)
-
 				window.open(prompt, {
 					system_prompt = system_prompt.build({
 						role = "debugger",
@@ -44,7 +32,11 @@ local function fix_code_bugs()
 						specialties = get_filetype(selection and selection.filetype or nil),
 						format = "fix_code_bugs",
 					}),
-					sticky = sticky,
+					sticky = sticky.build({
+						reply_language = language,
+						file = sticky.build_file_contexts(selected_files),
+						register = "system_clipboard",
+					}),
 				})
 			end,
 		},

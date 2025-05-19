@@ -2,24 +2,19 @@ local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local get_filetype = require("plugins.copilotchat.utils.get_filetype")
+local sticky = require("plugins.copilotchat.utils.sticky")
 local window = require("plugins.copilotchat.utils.window")
 
 local function explain_code()
 	local selection = require("CopilotChat").get_selection()
-	local sticky = { "#reply_language:" .. language }
 
 	require("fzf-lua").files({
 		prompt = "Files> ",
 		actions = {
 			["default"] = function(selected_files)
-				selected_files = selected_files or {}
-				local file_tags = vim.tbl_map(function(f)
-					local clean = f:gsub("^%s*", ""):gsub("^[^%w%./\\-_]+ *", "")
-					return "#file:" .. clean
-				end, selected_files)
-				vim.list_extend(sticky, file_tags)
+				local file_contexts = sticky.build_file_contexts(selected_files)
 
-				window.open("Write an explanation for the selected code as paragraphs of text.", {
+				window.open_float("Write an explanation for the selected code as paragraphs of text.", {
 					system_prompt = system_prompt.build({
 						role = "teacher",
 						character = "ai",
@@ -28,7 +23,10 @@ local function explain_code()
 						question_focus = "selection",
 						format = "explain",
 					}),
-					sticky = sticky,
+					sticky = sticky.build({
+						reply_language = language,
+						file = file_contexts,
+					}),
 					selection = function(source)
 						local select = require("CopilotChat.select")
 						return select.visual(source) or select.buffer(source)

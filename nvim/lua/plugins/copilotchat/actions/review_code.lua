@@ -4,11 +4,9 @@ local get_filetype = require("plugins.copilotchat.utils.get_filetype")
 local prompts_module = require("plugins.copilotchat.prompts")
 local language = prompts_module.language
 local window = require("plugins.copilotchat.utils.window")
+local sticky = require("plugins.copilotchat.utils.sticky")
 
-local function review_code()
-	local selection = require("CopilotChat").get_selection()
-
-	local prompt = [[
+local prompt = [[
 Review the "selected code".
 
 **Check for**:
@@ -27,6 +25,9 @@ Review the "selected code".
 If no issues are found, confirm the code is well-written and explain why.
   ]]
 
+local function review_code()
+	local selection = require("CopilotChat").get_selection()
+
 	window.open_vertical(prompt, {
 		system_prompt = system_prompt.build({
 			role = "assistant",
@@ -36,7 +37,13 @@ If no issues are found, confirm the code is well-written and explain why.
 			question_focus = "selection",
 			format = "review",
 		}),
-		sticky = { "#reply_language:" .. language },
+		sticky = sticky.build({
+			reply_language = language,
+		}),
+		selection = function(source)
+			local select = require("CopilotChat.select")
+			return select.visual(source) or select.buffer(source)
+		end,
 		callback = function(response, source)
 			local diagnostics = {}
 			for line in response:gmatch("[^\r\n]+") do
