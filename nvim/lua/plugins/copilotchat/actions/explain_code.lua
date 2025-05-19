@@ -1,6 +1,5 @@
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
-local get_filetype = require("plugins.copilotchat.utils.get_filetype")
 local sticky = require("plugins.copilotchat.utils.sticky")
 local window = require("plugins.copilotchat.utils.window")
 
@@ -18,7 +17,7 @@ local function explain_code()
 						role = "teacher",
 						character = "ai",
 						guideline = { localization = true },
-						specialties = get_filetype(selection and selection.filetype or nil),
+						specialties = selection and selection.filetype or nil,
 						question_focus = "selection",
 						format = "explain",
 					}),

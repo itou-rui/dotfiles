@@ -1,6 +1,6 @@
 local copilot_chat_ns = vim.api.nvim_create_namespace("copilot-chat-diagnostics")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
-local get_filetype = require("plugins.copilotchat.utils.get_filetype")
+local get_filetype = require("plugins.copilotchat.utils.filetype")
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
@@ -32,7 +32,7 @@ local function review_code()
 			role = "assistant",
 			character = "ai",
 			guideline = { localization = true },
-			specialties = get_filetype(selection and selection.filetype or nil),
+			specialties = selection and selection.filetype or nil,
 			question_focus = "selection",
 			format = "review",
 		}),

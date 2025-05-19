@@ -1,6 +1,5 @@
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
-local get_filetype = require("plugins.copilotchat.utils.get_filetype")
 local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
 
@@ -23,12 +22,12 @@ local function fix_code_bugs()
 		prompt = "Related Files> ",
 		actions = {
 			["default"] = function(selected_files)
-				window.open(prompt, {
+				window.open_vertical(prompt, {
 					system_prompt = system_prompt.build({
 						role = "debugger",
 						character = "ai",
 						guideline = { change_code = true, localization = true },
-						specialties = get_filetype(selection and selection.filetype or nil),
+						specialties = selection and selection.filetype or nil,
 						format = "fix_code_bugs",
 					}),
 					sticky = sticky.build({
