@@ -1,5 +1,4 @@
-local prompts_module = require("plugins.copilotchat.prompts")
-local language = prompts_module.language
+local system_languages = require("plugins.copilotchat.utils.system_languages")
 
 local prompt = [[
 Generate a concise and natural-sounding title in %s that accurately describes the purpose or functionality of the following conversation.
@@ -30,7 +29,7 @@ local function save_chat(response, source)
 	end
 
 	-- Use AI to generate prompt title based on first AI response to user question
-	chat.ask(vim.trim(prompt:format(language, response)), {
+	chat.ask(vim.trim(prompt:format(system_languages.default, response)), {
 		callback = function(gen_response)
 			-- Generate timestamp in format YYYYMMDD_HHMMSS
 			local timestamp = os.date("%Y%m%d_%H%M%S")
