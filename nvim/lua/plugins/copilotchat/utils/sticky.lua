@@ -112,7 +112,7 @@ local function add_system(sticky, sys)
 	local function add_system_inner(val, seen)
 		local key = tostring(val)
 		if not seen[key] then
-			table.insert(sticky, "#system:" .. key .. "`")
+			table.insert(sticky, "#system:`" .. key .. "`")
 			seen[key] = true
 		end
 	end
