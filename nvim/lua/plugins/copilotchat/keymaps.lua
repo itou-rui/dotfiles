@@ -39,10 +39,11 @@ return {
 		desc = "Analyze",
 		mode = { "n", "v" },
 	},
+	{ "<leader>acf", "", desc = "Fixs", mode = { "n", "v" } },
 	{
-		"<leader>acf",
-		require("plugins.copilotchat.actions.code.fix_bugs"),
-		desc = "Fix bug",
+		"<leader>acfb",
+		require("plugins.copilotchat.actions.fix_code_bugs"),
+		desc = "Bugs",
 		mode = { "n", "v" },
 	},
 	{
