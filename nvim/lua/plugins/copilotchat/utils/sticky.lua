@@ -28,6 +28,7 @@ local RegisterSymbolMap = {
 ---| 'last_search'                     -- last search pattern
 
 ---@class Fields
+---@field system_prompt string|nil
 ---@field buffer nil|number
 ---@field buffers nil|("listed"|"visible")
 ---@field file nil|(string|table<string>)
@@ -129,6 +130,7 @@ end
 function M.build(fields)
 	local sticky = {}
 
+	add_field(sticky, fields, "system_prompt", "/")
 	add_field(sticky, fields, "buffer", "#buffer:")
 	add_field(sticky, fields, "buffers", "#buffers:")
 	add_field(sticky, fields, "file", "#file:")

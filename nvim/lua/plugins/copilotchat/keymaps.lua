@@ -65,12 +65,11 @@ return {
 		mode = { "n", "v" },
 	},
 
-	-- Chats
-	{ "<leader>aC", "", desc = "Chat", mode = { "n", "v" } },
+	-- Chat
 	{
-		"<leader>aCf",
-		require("plugins.copilotchat.chats.free_chat"),
-		desc = "Free chat",
+		"<leader>aC",
+		require("plugins.copilotchat.actions.chat").open,
+		desc = "Open chat",
 		mode = { "n", "v" },
 	},
 
