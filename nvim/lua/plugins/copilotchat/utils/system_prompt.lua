@@ -1,3 +1,4 @@
+local filetype = require("plugins.copilotchat.utils.filetype")
 local M = {}
 
 local function load_prompt(file_path)
@@ -17,7 +18,7 @@ end
 --- @class BuildOptions
 --- @field role nil | "assistant" | "teacher" | "reviewer" | "architect" | "debugger" | "DevOps" | "performer" | "tester" | "security"
 --- @field character nil | "ai" | "friendly" | "cute" | "tsundere"
---- @field specialties nil | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css")[]
+--- @field specialties nil | false | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css")
 --- @field guideline nil | Guideline
 --- @field question_focus nil | "selection"
 --- @field format nil | "explain" | "review" | "fix_code_bugs"
@@ -41,10 +42,11 @@ M.build = function(opts)
 	system_prompt = system_prompt .. "\n" .. load_prompt(prompt_path("characters/" .. character .. ".md"))
 
 	-- Specialties
-	if opts.specialties then
-		system_prompt = system_prompt .. "\n" .. load_prompt(prompt_path("specialties/base.md"))
+	system_prompt = system_prompt .. "\n" .. load_prompt(prompt_path("specialties/base.md"))
+	local specialties = filetype.add_related(opts.specialties)
+	if specialties then
 		local failed_languages = {}
-		for _, specialty in ipairs(opts.specialties) do
+		for _, specialty in ipairs(specialties) do
 			local specialty_prompt = load_prompt(prompt_path("specialties/" .. specialty .. ".md"))
 			if specialty_prompt ~= "" then
 				system_prompt = system_prompt .. "\n" .. specialty_prompt

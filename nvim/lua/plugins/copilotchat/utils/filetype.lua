@@ -1,3 +1,5 @@
+local M = {}
+
 local FILETYPE_CONFIGS = {
 	angular = {
 		patterns = {
@@ -66,13 +68,16 @@ for _, config in pairs(FILETYPE_CONFIGS) do
 	end
 end
 
----@param filetype string | nil | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "htmlangular")
-local function get_filetype(filetype)
-	if filetype == "" then
+---@param filetype string | nil | false| ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "htmlangular")
+M.add_related = function(filetype)
+	if filetype == false then
 		return nil
 	end
 
-	filetype = filetype or vim.bo.filetype
+	if filetype == nil then
+		filetype = vim.bo.filetype
+	end
+
 	local filename = vim.fn.expand("%:t")
 
 	-- Fast path: direct filetype match
@@ -94,4 +99,4 @@ local function get_filetype(filetype)
 	return nil
 end
 
-return get_filetype
+return M
