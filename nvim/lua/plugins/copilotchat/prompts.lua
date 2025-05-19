@@ -1,94 +1,141 @@
-local system_prompt = require("plugins.copilotchat.utils.system_prompt")
-
--- This file contains the prompt templates for the LLMs.
 local M = {}
 
-local function load_prompt(file_path)
-	local file = io.open(file_path, "r")
-	if not file then
-		return ""
-	end
-	local content = file:read("*a")
-	file:close()
-	return content
+local system_prompt = require("plugins.copilotchat.utils.system_prompt")
+
+local function build_assistant(specialty)
+	return system_prompt.build({
+		role = "assistant",
+		character = "ai",
+		guideline = { change_code = true, localization = true },
+		question_focus = "selection",
+		specialty = specialty,
+	})
 end
 
-local base_instructions = load_prompt(
-	vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/instructions/base.md"
-) .. "\n\n"
-local change_code_instruction = load_prompt(
-	vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/instructions/change_code.md"
-) .. "\n\n"
-local localize_instruction = load_prompt(
-	vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/instructions/localization.md"
-) .. "\n\n"
+local function build_teacher(character, specialty)
+	return system_prompt.build({
+		role = "teacher",
+		character = character,
+		guideline = { localization = true },
+		specialty = specialty,
+	})
+end
 
 M.prompts = {
-	-- System Prompts
-	SystemPromptInstructions = {
-		system_prompt = base_instructions .. change_code_instruction .. localize_instruction,
+	-- Assistants
+	Assistant = {
+		system_prompt = build_assistant(""),
+	},
+	LuaAssistant = {
+		system_prompt = build_assistant("lua"),
+	},
+	TypescriptAssistant = {
+		system_prompt = build_assistant("typescript"),
+	},
+	JavascriptAssistant = {
+		system_prompt = build_assistant("javascript"),
+	},
+	PythonAssistant = {
+		system_prompt = build_assistant("python"),
+	},
+	DockerAssistant = {
+		system_prompt = build_assistant("docker"),
+	},
+	ReactAssistant = {
+		system_prompt = build_assistant("react"),
+	},
+	ZshAssistant = {
+		system_prompt = build_assistant("zsh"),
+	},
+	CssAssistant = {
+		system_prompt = build_assistant("css"),
 	},
 
-	-- Code
-	SystemPromptReview = {
-		system_prompt = base_instructions .. localize_instruction .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/code/review.md"
-		),
+	-- Friendly Teacher
+	FriendlyTeacher = {
+		system_prompt = build_teacher("friendly", ""),
 	},
-	SystemPromptExplain = {
-		system_prompt = base_instructions .. localize_instruction .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/code/explain.md"
-		),
+	FriendlyLuaTeacher = {
+		system_prompt = build_teacher("friendly", "lua"),
 	},
-	SystemPromptFixBugs = {
-		system_prompt = base_instructions .. change_code_instruction .. localize_instruction .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/code/fix_bugs.md"
-		),
+	FriendlyTypescriptTeacher = {
+		system_prompt = build_teacher("friendly", "typescript"),
 	},
-	SystemPromptAnalyzeCode = {
-		system_prompt = base_instructions .. change_code_instruction .. localize_instruction .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/code/analyze.md"
-		),
+	FriendlyJavascriptTeacher = {
+		system_prompt = build_teacher("friendly", "javascript"),
 	},
-	SystemPromptCodeDoc = {
-		system_prompt = base_instructions .. change_code_instruction .. localize_instruction .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/code/doc.md"
-		),
+	FriendlyPythonTeacher = {
+		system_prompt = build_teacher("friendly", "python"),
 	},
-
-	-- Utils
-	SystemPromptOutputTemplate = {
-		system_prompt = base_instructions .. localize_instruction .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/utils/output_template.md"
-		),
+	FriendlyDockerTeacher = {
+		system_prompt = build_teacher("friendly", "docker"),
 	},
-	SystemPromptTranslate = {
-		system_prompt = base_instructions .. change_code_instruction .. localize_instruction .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/utils/translate.md"
-		),
+	FriendlyReactTeacher = {
+		system_prompt = build_teacher("friendly", "react"),
 	},
-	SystemPromptSpelling = {
-		system_prompt = base_instructions .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/utils/spelling.md"
-		),
+	FriendlyZshTeacher = {
+		system_prompt = build_teacher("friendly", "zsh"),
+	},
+	FriendlyCssTeacher = {
+		system_prompt = build_teacher("friendly", "css"),
 	},
 
-	-- Git
-	SystemPromptCommit = {
-		system_prompt = base_instructions .. change_code_instruction .. localize_instruction .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/git/commit.md"
-		),
+	-- Cute Teacher
+	CuteTeacher = {
+		system_prompt = build_teacher("cute", ""),
 	},
-	SystemPromptGenerate = {
-		system_prompt = base_instructions .. localize_instruction .. load_prompt(
-			vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/actions/git/generate.md"
-		),
+	CuteLuaTeacher = {
+		system_prompt = build_teacher("cute", "lua"),
+	},
+	CuteTypescriptTeacher = {
+		system_prompt = build_teacher("cute", "typescript"),
+	},
+	CuteJavascriptTeacher = {
+		system_prompt = build_teacher("cute", "javascript"),
+	},
+	CutePythonTeacher = {
+		system_prompt = build_teacher("cute", "python"),
+	},
+	CuteDockerTeacher = {
+		system_prompt = build_teacher("cute", "docker"),
+	},
+	CuteReactTeacher = {
+		system_prompt = build_teacher("cute", "react"),
+	},
+	CuteZshTeacher = {
+		system_prompt = build_teacher("cute", "zsh"),
+	},
+	CuteCssTeacher = {
+		system_prompt = build_teacher("cute", "css"),
 	},
 
-	-- Chat
-	SystemPromptChat = {
-		system_prompt = localize_instruction
-			.. load_prompt(vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/chat/free_chat.md"),
+	-- Tsundere Teacher
+	TsundereTeacher = {
+		system_prompt = build_teacher("tsundere", ""),
+	},
+	TsundereLuaTeacher = {
+		system_prompt = build_teacher("tsundere", "lua"),
+	},
+	TsundereTypescriptTeacher = {
+		system_prompt = build_teacher("tsundere", "typescript"),
+	},
+	TsundereJavascriptTeacher = {
+		system_prompt = build_teacher("tsundere", "javascript"),
+	},
+	TsunderePythonTeacher = {
+		system_prompt = build_teacher("tsundere", "python"),
+	},
+	TsundereDockerTeacher = {
+		system_prompt = build_teacher("tsundere", "docker"),
+	},
+	TsundereReactTeacher = {
+		system_prompt = build_teacher("tsundere", "react"),
+	},
+	TsundereZshTeacher = {
+		system_prompt = build_teacher("tsundere", "zsh"),
+	},
+	TsundereCssTeacher = {
+		system_prompt = build_teacher("tsundere", "css"),
 	},
 }
 
