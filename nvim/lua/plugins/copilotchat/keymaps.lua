@@ -1,15 +1,15 @@
 return {
 
 	-- Toggle window
-	{ "<leader>aw", "", desc = "Toggle window", mode = { "n", "v" } },
+	{ "<leader>aa", "", desc = "Toggle window", mode = { "n", "v" } },
 	{
-		"<leader>awv",
+		"<leader>aav",
 		require("plugins.copilotchat.utils.window").toggle_vertical,
 		desc = "Vertical",
 		mode = { "n", "v" },
 	},
 	{
-		"<leader>awf",
+		"<leader>aaf",
 		require("plugins.copilotchat.utils.window").toggle_float,
 		desc = "Float",
 		mode = { "n", "v" },
