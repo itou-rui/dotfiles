@@ -1,6 +1,6 @@
 local M = {}
 
-local FILETYPE_CONFIGS = {
+M.FILETYPE_CONFIGS = {
 	angular = {
 		patterns = {
 			"%.component%.ts$",
@@ -60,7 +60,7 @@ local FILETYPE_CONFIGS = {
 
 -- Precompute filetype to config mapping for fast lookup
 local filetype_to_config = {}
-for _, config in pairs(FILETYPE_CONFIGS) do
+for _, config in pairs(M.FILETYPE_CONFIGS) do
 	if config.filetypes then
 		for _, ft in ipairs(config.filetypes) do
 			filetype_to_config[ft] = config
@@ -86,7 +86,7 @@ M.add_related = function(filetype)
 	end
 
 	-- Slow path: pattern match
-	for _, config in pairs(FILETYPE_CONFIGS) do
+	for _, config in pairs(M.FILETYPE_CONFIGS) do
 		if config.patterns then
 			for _, pattern in ipairs(config.patterns) do
 				if filename:match(pattern) then
