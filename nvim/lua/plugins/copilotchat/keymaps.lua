@@ -18,7 +18,7 @@ return {
 	-- List chat history
 	{
 		"<leader>ah",
-		require("plugins.copilotchat.utils.chat_history.list").list_history,
+		require("plugins.copilotchat.utils.chat_history").list,
 		desc = "List chat history",
 		mode = { "n", "v" },
 	},
