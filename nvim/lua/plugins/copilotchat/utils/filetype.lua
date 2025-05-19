@@ -56,6 +56,10 @@ M.FILETYPE_CONFIGS = {
 		filetypes = { "zsh" },
 		prompts = { "zsh" },
 	},
+	gitcommit = {
+		filetypes = { "gitcommit" },
+		prompts = { "gitcommit" },
+	},
 }
 
 -- Precompute filetype to config mapping for fast lookup
@@ -68,7 +72,7 @@ for _, config in pairs(M.FILETYPE_CONFIGS) do
 	end
 end
 
----@param filetype string | nil | false| ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "htmlangular")
+---@param filetype string | nil | false| ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "htmlangular" | "gitcommit")
 M.add_related = function(filetype)
 	if filetype == false then
 		return nil
