@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
@@ -7,22 +7,24 @@ local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
 
 local function generate_system_prompt(role, character, specialty)
-	if not role or not character or not specialty then
+	if not role or not character then
 		return nil
 	end
 
-	-- Uppercase the first letter of each component
 	local function capitalize(str)
 		return (str:gsub("^%l", string.upper))
 	end
 
-	-- If character is "ai", format as "LuaAssistant"
 	if character == "ai" then
-		return capitalize(specialty) .. capitalize(role)
+		return capitalize(specialty or "") .. capitalize(role)
 	end
 
-	-- Otherwise, format as "FriendlyPythonTeacher" style
-	return capitalize(character) .. capitalize(specialty) .. capitalize(role)
+	local parts = { capitalize(character) }
+	if specialty and specialty ~= "" then
+		table.insert(parts, capitalize(specialty))
+	end
+	table.insert(parts, capitalize(role))
+	return table.concat(parts)
 end
 
 local function fallback_chat_title(role, character, specialty)
