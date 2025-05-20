@@ -26,6 +26,7 @@ end
 ---@param prompt string | nil
 ---@param opts CopilotChat.config
 M.open = function(prompt, opts)
+	M.clear()
 	if prompt and prompt ~= "" then
 		copilotchat.ask(prompt, opts)
 	else
@@ -38,8 +39,6 @@ end
 M.open_float = function(prompt, opts)
 	opts = opts or {}
 	opts.window = M.float_window
-	M.reset_title()
-	M.reset_chat()
 	M.open(prompt, opts)
 end
 
@@ -48,14 +47,12 @@ end
 M.open_vertical = function(prompt, opts)
 	opts = opts or {}
 	opts.window = { layout = "vertical" }
-	M.reset_title()
-	M.reset_chat()
 	M.open(prompt, opts)
 end
 
 ---@param opts CopilotChat.config
 M.toggle = function(opts)
-	M.open(nil, opts)
+	copilotchat.open(opts)
 end
 
 ---@param opts CopilotChat.config

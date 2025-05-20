@@ -190,7 +190,10 @@ M.list = function()
 			vim.cmd("only")
 
 			chat.open()
-			chat.load(item.basename)
+			vim.schedule(function()
+				vim.g.copilot_chat_title = item.basename
+				chat.load(item.basename)
+			end)
 		end,
 		items = items,
 		format = function(item)
@@ -288,28 +291,29 @@ M.save = function(response, opts)
 	end
 
 	if vim.g.copilot_chat_title then
-		chat.save(vim.g.copilot_chat_title)
-		return
-	end
-
-	if opts == nil then
-		opts = { used_prompt = "", tag = "NewChat" }
-	end
-
-	-- Use AI to generate prompt title based on first AI response to user question
-	chat.ask(vim.trim(title_prompt:format(system_languages.default, opts.used_prompt, response)), {
-		callback = function(gen_response)
-			-- Generate timestamp in format YYYYMMDD_HHMMSS
-			local timestamp = os.date("%Y%m%d_%H%M%S")
-			-- Encode the generated title to make it safe as a filename
-			local title = opts.tag .. ": " .. gen_response
-			local safe_title = vim.base64.encode(title):gsub("/", "_"):gsub("+", "-"):gsub("=", "")
-			vim.g.copilot_chat_title = timestamp .. "_" .. vim.trim(safe_title)
+		vim.schedule(function()
 			chat.save(vim.g.copilot_chat_title)
-			return gen_response
-		end,
-		headless = true, -- Disable updating chat buffer and history with this question
-	})
+		end)
+	else
+		if opts == nil then
+			opts = { used_prompt = "", tag = "NewChat" }
+		end
+
+		-- Use AI to generate prompt title based on first AI response to user question
+		chat.ask(vim.trim(title_prompt:format(system_languages.default, opts.used_prompt, response)), {
+			callback = function(gen_response)
+				-- Generate timestamp in format YYYYMMDD_HHMMSS
+				local timestamp = os.date("%Y%m%d_%H%M%S")
+				-- Encode the generated title to make it safe as a filename
+				local title = opts.tag .. ": " .. gen_response
+				local safe_title = vim.base64.encode(title):gsub("/", "_"):gsub("+", "-"):gsub("=", "")
+				vim.g.copilot_chat_title = timestamp .. "_" .. vim.trim(safe_title)
+				chat.save(vim.g.copilot_chat_title)
+				return gen_response
+			end,
+			headless = true, -- Disable updating chat buffer and history with this question
+		})
+	end
 end
 
 return M
