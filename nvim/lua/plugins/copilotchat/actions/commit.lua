@@ -76,6 +76,7 @@ local function open_window(commit_type, base_branch, commit_language)
 			git = build_git_sticky(commit_type),
 			system = build_system_sticky(commit_type, base_branch),
 		}),
+		selection = false,
 		callback = function(response)
 			chat_history.save(response, {
 				used_prompt = prompt or fallback_chat_title(commit_type),
