@@ -8,7 +8,7 @@ local function build_assistant(specialty)
 		character = "ai",
 		guideline = { change_code = true, localization = true },
 		question_focus = "selection",
-		specialty = specialty,
+		specialties = specialty,
 	})
 end
 
@@ -17,7 +17,16 @@ local function build_teacher(character, specialty)
 		role = "teacher",
 		character = character,
 		guideline = { localization = true },
-		specialty = specialty,
+		specialties = specialty,
+	})
+end
+
+local build_documenter = function(specialty)
+	return system_prompt.build({
+		role = "documenter",
+		character = "ai",
+		guideline = { change_code = true, localization = true },
+		specialties = specialty,
 	})
 end
 
@@ -136,6 +145,35 @@ M.prompts = {
 	},
 	TsundereCssTeacher = {
 		system_prompt = build_teacher("tsundere", "css"),
+	},
+
+	-- Documenter
+	Documenter = {
+		system_prompt = build_documenter({ "markdown" }),
+	},
+	LuaDocumenter = {
+		system_prompt = build_documenter({ "lua", "markdown" }),
+	},
+	TypescriptDocumenter = {
+		system_prompt = build_documenter({ "typescript", "markdown" }),
+	},
+	JavascriptDocumenter = {
+		system_prompt = build_documenter({ "javascript", "markdown" }),
+	},
+	PythonDocumenter = {
+		system_prompt = build_documenter({ "python", "markdown" }),
+	},
+	DockerDocumenter = {
+		system_prompt = build_documenter({ "docker", "markdown" }),
+	},
+	ReactDocumenter = {
+		system_prompt = build_documenter({ "react", "markdown" }),
+	},
+	ZshDocumenter = {
+		system_prompt = build_documenter({ "zsh", "markdown" }),
+	},
+	CssDocumenter = {
+		system_prompt = build_documenter({ "css", "markdown" }),
 	},
 }
 

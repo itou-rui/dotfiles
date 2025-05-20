@@ -16,9 +16,9 @@ end
 --- @field localization nil | boolean
 
 --- @class BuildOptions
---- @field role nil | "assistant" | "teacher" | "reviewer" | "architect" | "debugger" | "DevOps" | "performer" | "tester" | "security" | "commiter"
+--- @field role nil | "assistant" | "teacher" | "reviewer" | "architect" | "debugger" | "DevOps" | "performer" | "tester" | "security" | "commiter"|"documenter"
 --- @field character nil | "ai" | "friendly" | "cute" | "tsundere"
---- @field specialty nil | false | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "gitcommit")
+--- @field specialties nil | false | table<("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "gitcommit")> | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "gitcommit")
 --- @field guideline nil | Guideline
 --- @field question_focus nil | "selection"
 --- @field format nil | "explain" | "review" | "fix_code_bugs" | "commit"
@@ -34,6 +34,7 @@ M.roles = {
 	"tester",
 	"security",
 	"commiter",
+	"documenter",
 }
 
 M.characters = {
@@ -81,7 +82,7 @@ M.build = function(opts)
 
 	-- Specialties
 	table.insert(prompt_parts, load_prompt(prompt_path("specialties/base.md")))
-	local specialties = filetype.add_related(opts.specialty)
+	local specialties = filetype.add_related(opts.specialties)
 	if specialties and #specialties > 0 then
 		local failed_languages = {}
 		for _, specialty in ipairs(specialties) do

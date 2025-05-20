@@ -22,7 +22,7 @@ local function explain_code()
 						role = "teacher",
 						character = "ai",
 						guideline = { localization = true },
-						specialty = selection and selection.filetype or nil,
+						specialties = selection and selection.filetype or nil,
 						question_focus = "selection",
 						format = "explain",
 					}),
