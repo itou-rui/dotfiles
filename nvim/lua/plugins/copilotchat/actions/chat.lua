@@ -1,10 +1,11 @@
-local M = {}
-
+local chat_select = require("CopilotChat.select")
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local chat_history = require("plugins.copilotchat.utils.chat_history")
 local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
+
+local M = {}
 
 local function generate_system_prompt(role, character, specialty)
 	if not role or not character then
@@ -57,15 +58,13 @@ local function fallback_chat_title(role, character, specialty)
 	end
 end
 
-local function open_chat_window(role, character, specialty, selection, style)
+local function open_chat_window(role, character, specialty, style)
 	local fallback_selection = function(source)
-		local select = require("CopilotChat.select")
-		return select.visual(source) or select.buffer(source)
+		return chat_select.visual(source) or chat_select.buffer(source)
 	end
 
 	local stickies = sticky.build({
 		system_prompt = generate_system_prompt(role, character, specialty),
-		filenames = selection and selection.filenames or nil,
 		reply_language = system_languages.default,
 	})
 
@@ -98,63 +97,64 @@ local function open_chat_window(role, character, specialty, selection, style)
 	end)
 end
 
-local function select_style(role, character, specialty, selection)
+local function select_style(role, character, specialty)
 	vim.ui.select({ "float", "vertical" }, {
 		prompt = "Select window style> ",
 	}, function(style)
-		open_chat_window(role, character, specialty, selection, style)
+		vim.cmd("normal! gv")
+		vim.schedule(function()
+			open_chat_window(role, character, specialty, style)
+		end)
 	end)
 end
 
-local function on_specialty_selected(role, character, selection, specialty)
+local function on_specialty_selected(role, character, specialty)
 	if not specialty or specialty == "" then
 		specialty = nil
 	end
-	select_style(role, character, specialty, selection)
+	select_style(role, character, specialty)
 end
 
-local function select_specialty(role, character, selection)
+local function select_specialty(role, character)
 	vim.ui.select(system_prompt.specialties, {
 		prompt = "Select specialty> ",
 	}, function(specialty)
-		on_specialty_selected(role, character, selection, specialty)
+		on_specialty_selected(role, character, specialty)
 	end)
 end
 
-local function on_character_selected(role, selection, character)
+local function on_character_selected(role, character)
 	if not character or character == "" then
 		character = "friendly"
 	end
-	select_specialty(role, character, selection)
+	select_specialty(role, character)
 end
 
-local function select_character(role, selection)
+local function select_character(role)
 	vim.ui.select(system_prompt.characters, {
 		prompt = "Select character> ",
 	}, function(character)
-		on_character_selected(role, selection, character)
+		on_character_selected(role, character)
 	end)
 end
 
-local function on_role_selected(role, selection)
+local function on_role_selected(role)
 	if not role or role == "" then
 		role = "assistant"
 	end
 
 	if role == "assistant" then
-		select_specialty(role, "ai", selection)
+		select_specialty(role, "ai")
 	elseif role == "teacher" then
-		select_character(role, selection)
+		select_character(role)
 	end
 end
 
 M.open = function()
-	local selection = require("CopilotChat").get_selection()
-
 	vim.ui.select(system_prompt.roles, {
 		prompt = "Select role> ",
 	}, function(role)
-		on_role_selected(role, selection)
+		on_role_selected(role)
 	end)
 end
 
