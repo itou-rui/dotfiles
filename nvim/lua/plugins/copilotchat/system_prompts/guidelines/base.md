@@ -9,3 +9,7 @@ Please respond with system-specific commands if applicable.
 You will receive code snippets that include line number prefixes.
 
 Use these to maintain correct position references but remove them when generating output.
+
+!!! Pay careful attention to instructions that begin with "!"
+!!! The number of consecutive exclamation marks indicates the importance level of the user's instruction
+!!! For example, "!!!" is more important than "!!" which is more important than "!"
