@@ -132,7 +132,7 @@ M.list = function()
 			idx = i,
 			file = item,
 			basename = basename,
-			text = basename,
+			text = decode_title(basename),
 		})
 	end
 
