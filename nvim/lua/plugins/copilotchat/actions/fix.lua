@@ -9,7 +9,8 @@ local selection = require("plugins.copilotchat.utils.selection")
 
 local M = {}
 
-local prompt = [[
+local prompts = {
+	Bug = [[
 Fix the bug based on the given stack trace (`vim_register_0`).
 
 **Note**:
@@ -20,7 +21,8 @@ Fix the bug based on the given stack trace (`vim_register_0`).
   - If you followed specific rules or references, list the source (MDN, official TypeScript, etc.) in Source.
 - Visually represent the bug occurrence flow using ASCII art.
 - If there are multiple fixes, separate each into its own code block.
-]]
+]],
+}
 
 local function build_sticky(target, selected_files)
 	local file = nil
@@ -63,7 +65,7 @@ end
 
 local function open_window(target, selected_files, restored_selection)
 	local save_chat = function(response)
-		chat_history.save(response, { used_prompt = prompt, tag = "FixBug" })
+		chat_history.save(response, { used_prompt = prompts[target], tag = "FixBug" })
 		return response
 	end
 
@@ -74,7 +76,7 @@ local function open_window(target, selected_files, restored_selection)
 		return false
 	end
 
-	window.open_vertical(prompt, {
+	window.open_vertical(prompts[target], {
 		system_prompt = build_system_prompt(target, restored_selection),
 		sticky = build_sticky(target, selected_files),
 		selection = callback_selection,
