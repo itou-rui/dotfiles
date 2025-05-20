@@ -1,0 +1,165 @@
+local fzf_lua = require("fzf-lua")
+local chat = require("CopilotChat")
+local chat_select = require("CopilotChat.select")
+local system_languages = require("plugins.copilotchat.utils.system_languages")
+local system_prompt = require("plugins.copilotchat.utils.system_prompt")
+local chat_history = require("plugins.copilotchat.utils.chat_history")
+local window = require("plugins.copilotchat.utils.window")
+local sticky = require("plugins.copilotchat.utils.sticky")
+
+local programming_languages = {
+	"typescript",
+	"javascript",
+	"python",
+	"java",
+	"c",
+	"go",
+	"kotlin",
+	"rust",
+	"css",
+	"zsh",
+}
+
+local M = {}
+
+local get_prompt = function(target, language)
+	if target == "Text" then
+		return "Localize the content of a given Selection with `" .. language .. "`."
+	end
+	if target == "Program" then
+		return "Reproduce the complete contents of a given Selection in `" .. language .. "`."
+	end
+	return ""
+end
+
+local build_sticky = function(target, language, selected_files)
+	local file = nil
+	local reply_language = nil
+	local content_language = nil
+
+	if target == "Text" then
+		content_language = language
+	end
+
+	if target == "Program" then
+		file = sticky.build_file_contexts(selected_files)
+		reply_language = system_languages.default
+		content_language = system_languages.table.en
+	end
+
+	return sticky.build({
+		file = file,
+		reply_language = reply_language,
+		content_language = content_language,
+	})
+end
+
+local build_system_prompt = function(target, language, selection)
+	local role = "assistant"
+	local question_focus = nil
+	local specialties = nil
+
+	if target == "Text" then
+		question_focus = "selection"
+	end
+
+	if target == "Program" then
+		question_focus = "selection"
+		specialties = selection and { selection.filetype, language } or { language }
+	end
+
+	return system_prompt.build({
+		role = role,
+		character = "ai",
+		guideline = { localization = true },
+		specialties = specialties,
+		question_focus = question_focus,
+	})
+end
+
+local open_window = function(target, language, selected_files)
+	local prompt = get_prompt(target, language)
+	local stickies = build_sticky(target, language, selected_files)
+	local selection = chat.get_selection()
+	local system_instruction = build_system_prompt(target, language, selection)
+
+	local save_chat = function(response)
+		chat_history.save(response, { used_prompt = prompt, tag = "Translate" })
+		return response
+	end
+
+	local callback_selection = function(source)
+		if target == "Text" or target == "Program" then
+			return chat_select.visual(source) or chat_select.buffer(source)
+		end
+		return false
+	end
+
+	window.open_float(prompt, {
+		system_prompt = system_instruction,
+		sticky = stickies,
+		selection = callback_selection,
+		callback = save_chat,
+	})
+end
+
+local function restore_selection(target)
+	if target == "Text" or target == "Text" then
+		vim.cmd("normal! gv")
+	end
+end
+
+local function on_selected_files(target, programming_language, selected_files)
+	restore_selection(target)
+	vim.schedule(function()
+		open_window(target, programming_language, selected_files)
+	end)
+end
+
+local select_files = function(target, programming_language)
+	local callback = function(selected_files)
+		on_selected_files(target, programming_language, selected_files)
+	end
+
+	fzf_lua.files({ prompt = "Related Files> ", actions = { ["default"] = callback }, multi = true })
+end
+
+local select_programming_language = function(target)
+	local ui_opts = { prompt = "Select language> " }
+	vim.ui.select(programming_languages, ui_opts, function(specialty)
+		if not specialty or specialty == "" then
+			specialty = nil
+		end
+		select_files(target, specialty)
+	end)
+end
+
+local function select_user_language(target)
+	local ui_opts = { prompt = "Select Language> " }
+	vim.ui.select(system_languages.names, ui_opts, function(selected_language)
+		if not selected_language or selected_language == "" then
+			selected_language = system_languages.default
+		end
+		restore_selection(target)
+		vim.schedule(function()
+			open_window(target, selected_language)
+		end)
+	end)
+end
+
+M.execute = function()
+	local targets = { "Text", "Program" }
+	local ui_opts = { prompt = "Select target> " }
+	vim.ui.select(targets, ui_opts, function(target)
+		if not target or target == "" then
+			return
+		end
+		if target == "Text" then
+			select_user_language(target)
+		elseif target == "Program" then
+			select_programming_language(target)
+		end
+	end)
+end
+
+return M
