@@ -60,6 +60,14 @@ M.FILETYPE_CONFIGS = {
 		filetypes = { "gitcommit" },
 		prompts = { "gitcommit" },
 	},
+	markdown = {
+		filetypes = { "markdown" },
+		prompts = { "documentation" },
+	},
+	text = {
+		filetypes = { "text" },
+		prompts = { "documentation" },
+	},
 }
 
 -- Precompute filetype to config mapping for fast lookup
@@ -72,7 +80,7 @@ for _, config in pairs(M.FILETYPE_CONFIGS) do
 	end
 end
 
----@param filetype string | nil | false| ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "htmlangular" | "gitcommit")
+---@param filetype string | table | nil | false
 M.add_related = function(filetype)
 	if filetype == false then
 		return nil
@@ -84,12 +92,33 @@ M.add_related = function(filetype)
 
 	local filename = vim.fn.expand("%:t")
 
-	-- Fast path: direct filetype match
-	if filetype_to_config[filetype] then
-		return filetype_to_config[filetype].prompts
+	local filetypes = {}
+	if type(filetype) == "table" then
+		filetypes = filetype
+	else
+		filetypes = { filetype }
 	end
 
-	-- Slow path: pattern match
+	local prompts = {}
+	for _, ft in ipairs(filetypes) do
+		if filetype_to_config[ft] then
+			for _, prompt in ipairs(filetype_to_config[ft].prompts or {}) do
+				table.insert(prompts, prompt)
+			end
+		end
+	end
+	if #prompts > 0 then
+		local hash = {}
+		local unique_prompts = {}
+		for _, v in ipairs(prompts) do
+			if not hash[v] then
+				table.insert(unique_prompts, v)
+				hash[v] = true
+			end
+		end
+		return unique_prompts
+	end
+
 	for _, config in pairs(M.FILETYPE_CONFIGS) do
 		if config.patterns then
 			for _, pattern in ipairs(config.patterns) do

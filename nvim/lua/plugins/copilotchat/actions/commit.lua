@@ -67,7 +67,7 @@ local function open_window(commit_type, base_branch, commit_language)
 			role = "commiter",
 			character = "ai",
 			guideline = { change_code = true, localization = true },
-			specialty = "gitcommit",
+			specialties = "gitcommit",
 			format = "commit",
 		}),
 		sticky = sticky.build({
