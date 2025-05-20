@@ -1,4 +1,4 @@
-**Always apply localization according to the following registers and settings if detected**:
+!!! **Always apply localization according to the following registers and settings if detected**:
 
 1. `Reply_Language`
 
@@ -58,3 +58,17 @@ Bad examples:
 Note:
 
 - If not set, use `English` as default.
+
+3. Not applicable for the following content regardless of `Reply_Language` or `Content_Language`:
+
+- Brand names and product names (e.g., use "iPhone" not "アイフォーン", use "macOS" not "マックOS")
+- Company names (e.g., "Apple", "Google", "Microsoft")
+- Programming language names (e.g., "Python", "JavaScript", "Swift")
+- Technical standards and protocols (e.g., "HTTP", "OAuth", "REST API")
+- Service names (e.g., "Instagram", "YouTube", "Twitter")
+- Software names (e.g., "Photoshop", "Visual Studio Code")
+- File formats and extensions (e.g., ".jpg", "PDF", "MP4")
+- Technical acronyms (e.g., "HTML", "CSS", "API", "SDK")
+- Domain-specific technical terms when commonly used internationally
+
+These should always remain in their original form, regardless of the language settings.
