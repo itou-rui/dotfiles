@@ -10,43 +10,46 @@ local selection = require("plugins.copilotchat.utils.selection")
 
 local M = {}
 
-local code_prompt = [[
-Review the code for the **selection**.
+local prompts = {
+	Code = "Review the code for the **selection**.",
+	Spelling = "Review the spelling for the **selection**.",
+}
 
-**Check for**:
+local check_lists = {
+	Code = {
+		"Unclear or non-conventional naming",
+		"Comment quality (missing or unnecessary)",
+		"Complex expressions needing simplification",
+		"Deep nesting or complex control flow",
+		"Inconsistent style or formatting",
+		"Code duplication or redundancy",
+		"Potential performance issues",
+		"Error handling gaps",
+		"Security concerns",
+		"Breaking of SOLID principles",
+	},
+	Spelling = {
+		"Spelling mistakes",
+		"Grammatical errors",
+		"Awkward or unclear phrasing",
+		"Inconsistent terminology or style",
+		"Tone or language that may reduce clarity or professionalism",
+	},
+}
 
-- Unclear or non-conventional naming
-- Comment quality (missing or unnecessary)
-- Complex expressions needing simplification
-- Deep nesting or complex control flow
-- Inconsistent style or formatting
-- Code duplication or redundancy
-- Potential performance issues
-- Error handling gaps
-- Security concerns
-- Breaking of SOLID principles
-]]
+local build_prompt = function(target)
+	local prompt = prompts[target]
+	local check_list = check_lists[target]
 
-local spelling_prompt = [[
-Review the spelling for the **selection**.
-
-**Check for**:
-
-- Spelling mistakes
-- Grammatical errors
-- Awkward or unclear phrasing
-- Inconsistent terminology or style
-- Tone or language that may reduce clarity or professionalism
-]]
-
-local function get_prompt(target)
-	if target == "Code" then
-		return code_prompt
+	if not prompt or prompt == "" then
+		return nil
 	end
-	if target == "Spelling" then
-		return spelling_prompt
+
+	if not check_list or #check_list == 0 then
+		return prompt
 	end
-	return ""
+
+	return prompt .. "\n\n**Checklist**:\n- " .. table.concat(check_list, "\n- ")
 end
 
 local build_system_prompt = function(target, restored_selection)
@@ -66,7 +69,10 @@ local function build_sticky()
 end
 
 local function open_window(target, restored_selection)
-	local prompt = get_prompt(target)
+	local prompt = build_prompt(target)
+	if not prompt then
+		return
+	end
 
 	local callback_selection = function(source)
 		if target == "Code" or target == "Spelling" then
