@@ -1,89 +1,76 @@
-local M = {}
-
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local chat_history = require("plugins.copilotchat.utils.chat_history")
 local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
 
-local function build_system_sticky(commit_type, base_branch)
+local M = {}
+
+local prompts = {
+	Basic = 'Write a clear and concise "Basic" commit message for the selected changes.',
+	WIP = 'Write a commit message indicating this is a work in progress "WIP" commit.',
+	Merge = 'Write a commit message for merging the specified branches. \nSummarize the changes introduced by the "Merge".',
+	["Squash Merge"] = 'Write a commit message for a "Squash Merge", summarizing all combined changes.',
+}
+
+local fallback_chat_title = {
+	Basic = "Request to create basic commitments.",
+	WIP = "Request to create WIP commitments.",
+	Merge = "Request to Create Merge Commit.",
+	["Squash Merge"] = "Request to Create Squash Merge Commit.",
+}
+
+local function build_sticky(commit_type, base_branch, commit_language)
+	local git = nil
+	local system = nil
+
 	if commit_type == "Basic" or commit_type == "WIP" then
-		return nil
-	end
-
-	local current_branch = vim.trim(vim.fn.system("git rev-parse --abbrev-ref HEAD"))
-	local show_diff_command = "git diff " .. base_branch
-
-	if commit_type == "Merge" then
-		return { show_diff_command }
+		git = "staged"
+	elseif commit_type == "Merge" then
+		system = "git diff " .. base_branch
 	elseif commit_type == "Squash Merge" then
+		local current_branch = vim.trim(vim.fn.system("git rev-parse --abbrev-ref HEAD"))
 		local show_commit_list_command = "git log "
 			.. base_branch
 			.. ".."
 			.. current_branch
 			.. ' --reverse --pretty="%an -> %s"'
-
-		return { show_diff_command, show_commit_list_command }
+		system = { "git diff " .. base_branch, show_commit_list_command }
 	end
+
+	return sticky.build({
+		content_language = commit_language,
+		file = { "commitlint.config.js", ".cz-config.js" },
+		git = git,
+		system = system,
+	})
 end
 
-local function build_git_sticky(commit_type)
-	if commit_type == "Basic" or commit_type == "WIP" then
-		return { "staged" }
-	end
-	return nil
-end
-
-local function get_prompt(commit_type)
-	if commit_type == "Basic" then
-		return 'Write a clear and concise "Basic" commit message for the selected changes.'
-	elseif commit_type == "WIP" then
-		return 'Write a commit message indicating this is a work in progress "WIP" commit.'
-	elseif commit_type == "Merge" then
-		return 'Write a commit message for merging the specified branches. \nSummarize the changes introduced by the "Merge".'
-	elseif commit_type == "Squash Merge" then
-		return 'Write a commit message for a "Squash Merge", summarizing all combined changes.'
-	end
-	return ""
-end
-
-local function fallback_chat_title(commit_type)
-	if commit_type == "Basic" then
-		return "Request to create basic commitments."
-	elseif commit_type == "WIP" then
-		return "Request to create WIP commitments."
-	elseif commit_type == "Merge" then
-		return "Request to Create Merge Commit."
-	elseif commit_type == "Squash Merge" then
-		return "Request to Create Squash Merge Commit."
-	end
-	return "Unknown Type of Commitment Creation Request."
+local build_system_prompt = function()
+	return system_prompt.build({
+		role = "commiter",
+		character = "ai",
+		guideline = { change_code = true, localization = true },
+		specialties = "gitcommit",
+		format = "commit",
+	})
 end
 
 local function open_window(commit_type, base_branch, commit_language)
-	local prompt = get_prompt(commit_type)
+	local prompt = prompts[commit_type]
+
+	local save_chat = function(response)
+		chat_history.save(response, {
+			used_prompt = prompt or fallback_chat_title[commit_type],
+			tag = "Commit",
+		})
+	end
+
 	window.open_float(prompt, {
-		system_prompt = system_prompt.build({
-			role = "commiter",
-			character = "ai",
-			guideline = { change_code = true, localization = true },
-			specialties = "gitcommit",
-			format = "commit",
-		}),
-		sticky = sticky.build({
-			content_language = commit_language,
-			file = { "commitlint.config.js", ".cz-config.js" },
-			git = build_git_sticky(commit_type),
-			system = build_system_sticky(commit_type, base_branch),
-		}),
+		system_prompt = build_system_prompt(),
+		sticky = build_sticky(commit_type, base_branch, commit_language),
 		selection = false,
-		callback = function(response)
-			chat_history.save(response, {
-				used_prompt = prompt or fallback_chat_title(commit_type),
-				tag = "Commit",
-			})
-			return response
-		end,
+		callback = save_chat,
 	})
 end
 
