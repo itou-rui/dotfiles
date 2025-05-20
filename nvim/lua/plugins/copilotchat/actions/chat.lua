@@ -4,6 +4,7 @@ local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local chat_history = require("plugins.copilotchat.utils.chat_history")
 local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
+local selection = require("plugins.copilotchat.utils.selection")
 
 local M = {}
 
@@ -101,8 +102,7 @@ local function select_style(role, character, specialty)
 	vim.ui.select({ "float", "vertical" }, {
 		prompt = "Select window style> ",
 	}, function(style)
-		vim.cmd("normal! gv")
-		vim.schedule(function()
+		selection.restore(function()
 			open_chat_window(role, character, specialty, style)
 		end)
 	end)

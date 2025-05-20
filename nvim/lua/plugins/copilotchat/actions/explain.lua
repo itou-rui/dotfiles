@@ -1,4 +1,3 @@
-local chat = require("CopilotChat")
 local chat_select = require("CopilotChat.select")
 local fzf_lua = require("fzf-lua")
 local system_languages = require("plugins.copilotchat.utils.system_languages")
@@ -6,6 +5,7 @@ local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local chat_history = require("plugins.copilotchat.utils.chat_history")
 local sticky = require("plugins.copilotchat.utils.sticky")
 local window = require("plugins.copilotchat.utils.window")
+local selection = require("plugins.copilotchat.utils.selection")
 
 local M = {}
 
@@ -32,7 +32,7 @@ local build_sticky = function(target, selected_files)
 	})
 end
 
-local build_system_prompt = function(target, selection)
+local build_system_prompt = function(target, restored_selection)
 	local question_focus = nil
 
 	if target == "Code" or target == "File" then
@@ -43,17 +43,16 @@ local build_system_prompt = function(target, selection)
 		role = "teacher",
 		character = "ai",
 		guideline = { localization = true },
-		specialties = selection and selection.filetype or nil,
+		specialties = restored_selection and restored_selection.filetype or nil,
 		question_focus = question_focus,
 		format = "explain",
 	})
 end
 
-local function open_window(target, selected_files)
+local function open_window(target, selected_files, restored_selection)
 	local prompt = get_prompt(target)
 	local stickies = build_sticky(target, selected_files)
-	local selection = chat.get_selection()
-	local system_instruction = build_system_prompt(target, selection)
+	local system_instruction = build_system_prompt(target, restored_selection)
 
 	local save_chat = function(response)
 		chat_history.save(response, { used_prompt = prompt, tag = "Explain" })
@@ -78,17 +77,12 @@ local function open_window(target, selected_files)
 	})
 end
 
-local function restore_selection(target)
-	if target == "Code" or target == "File" then
-		vim.cmd("normal! gv")
-	end
-end
-
 local function on_selected_files(target, selected_files)
-	restore_selection(target)
-	vim.schedule(function()
-		open_window(target, selected_files)
-	end)
+	if target == "Code" or target == "File" then
+		selection.restore(function(restored_selection)
+			open_window(target, selected_files, restored_selection)
+		end)
+	end
 end
 
 local function select_files(target)
