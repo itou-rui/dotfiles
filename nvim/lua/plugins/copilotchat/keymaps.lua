@@ -55,19 +55,20 @@ return {
 		mode = { "n", "v" },
 	},
 
+	-- Fix
+	{
+		"<leader>af",
+		require("plugins.copilotchat.actions.fix").execute,
+		desc = "Fix",
+		mode = { "n", "v" },
+	},
+
 	-- Code
 	{ "<leader>ac", "", desc = "Code actions", mode = { "n", "v" } },
 	{
 		"<leader>aca",
 		require("plugins.copilotchat.actions.code.analyze"),
 		desc = "Analyze",
-		mode = { "n", "v" },
-	},
-	{ "<leader>acf", "", desc = "Fixs", mode = { "n", "v" } },
-	{
-		"<leader>acfb",
-		require("plugins.copilotchat.actions.fix_code_bugs"),
-		desc = "Bugs",
 		mode = { "n", "v" },
 	},
 	{
