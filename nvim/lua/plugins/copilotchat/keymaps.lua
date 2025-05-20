@@ -39,10 +39,19 @@ return {
 		mode = { "n", "v" },
 	},
 
+	-- Explain
 	{
 		"<leader>ae",
 		require("plugins.copilotchat.actions.explain").execute,
 		desc = "Explain",
+		mode = { "n", "v" },
+	},
+
+	-- Review
+	{
+		"<leader>ar",
+		require("plugins.copilotchat.actions.review").execute,
+		desc = "Review",
 		mode = { "n", "v" },
 	},
 
@@ -59,12 +68,6 @@ return {
 		"<leader>acfb",
 		require("plugins.copilotchat.actions.fix_code_bugs"),
 		desc = "Bugs",
-		mode = { "n", "v" },
-	},
-	{
-		"<leader>acr",
-		require("plugins.copilotchat.actions.review_code"),
-		desc = "Review",
 		mode = { "n", "v" },
 	},
 	{
@@ -99,12 +102,6 @@ return {
 
 	-- Utils
 	{ "<leader>au", "", desc = "Utils", mode = { "n", "v" } },
-	{
-		"<leader>aus",
-		require("plugins.copilotchat.actions.utils.spelling"),
-		desc = "Spelling",
-		mode = { "n", "v" },
-	},
 	{
 		"<leader>aut",
 		require("plugins.copilotchat.actions.translate").execute,
