@@ -1,11 +1,11 @@
 local fzf_lua = require("fzf-lua")
-local chat = require("CopilotChat")
 local chat_select = require("CopilotChat.select")
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local chat_history = require("plugins.copilotchat.utils.chat_history")
 local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
+local selection = require("plugins.copilotchat.utils.selection")
 
 local programming_languages = {
 	"typescript",
@@ -54,7 +54,7 @@ local build_sticky = function(target, language, selected_files)
 	})
 end
 
-local build_system_prompt = function(target, language, selection)
+local build_system_prompt = function(target, language, restored_selection)
 	local role = "assistant"
 	local question_focus = nil
 	local specialties = nil
@@ -65,7 +65,7 @@ local build_system_prompt = function(target, language, selection)
 
 	if target == "Program" then
 		question_focus = "selection"
-		specialties = selection and { selection.filetype, language } or { language }
+		specialties = restored_selection and { restored_selection.filetype, language } or { language }
 	end
 
 	return system_prompt.build({
@@ -77,11 +77,10 @@ local build_system_prompt = function(target, language, selection)
 	})
 end
 
-local open_window = function(target, language, selected_files)
+local open_window = function(target, language, restored_selection, selected_files)
 	local prompt = get_prompt(target, language)
 	local stickies = build_sticky(target, language, selected_files)
-	local selection = chat.get_selection()
-	local system_instruction = build_system_prompt(target, language, selection)
+	local system_instruction = build_system_prompt(target, language, restored_selection)
 
 	local save_chat = function(response)
 		chat_history.save(response, { used_prompt = prompt, tag = "Translate" })
@@ -103,17 +102,13 @@ local open_window = function(target, language, selected_files)
 	})
 end
 
-local function restore_selection(target)
-	if target == "Text" or target == "Text" then
-		vim.cmd("normal! gv")
-	end
-end
-
 local function on_selected_files(target, programming_language, selected_files)
-	restore_selection(target)
-	vim.schedule(function()
-		open_window(target, programming_language, selected_files)
-	end)
+	if target == "Text" or target == "Program" then
+		selection.restore(function(restored_selection)
+			open_window(target, programming_language, restored_selection, selected_files)
+		end)
+	end
+	open_window(target, programming_language, nil, selected_files)
 end
 
 local select_files = function(target, programming_language)
@@ -140,9 +135,8 @@ local function select_user_language(target)
 		if not selected_language or selected_language == "" then
 			selected_language = system_languages.default
 		end
-		restore_selection(target)
-		vim.schedule(function()
-			open_window(target, selected_language)
+		selection.restore(function(restored_selection)
+			open_window(target, selected_language, restored_selection)
 		end)
 	end)
 end
