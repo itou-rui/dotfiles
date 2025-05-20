@@ -107,7 +107,7 @@ return {
 	},
 	{
 		"<leader>aut",
-		require("plugins.copilotchat.actions.utils.translate").translation_vertical,
+		require("plugins.copilotchat.actions.translate").execute,
 		desc = "Translate",
 		mode = { "n", "v" },
 	},
