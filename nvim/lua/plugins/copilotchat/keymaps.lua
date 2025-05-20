@@ -39,6 +39,13 @@ return {
 		mode = { "n", "v" },
 	},
 
+	{
+		"<leader>ae",
+		require("plugins.copilotchat.actions.explain").execute,
+		desc = "Explain",
+		mode = { "n", "v" },
+	},
+
 	-- Code
 	{ "<leader>ac", "", desc = "Code actions", mode = { "n", "v" } },
 	{
@@ -52,12 +59,6 @@ return {
 		"<leader>acfb",
 		require("plugins.copilotchat.actions.fix_code_bugs"),
 		desc = "Bugs",
-		mode = { "n", "v" },
-	},
-	{
-		"<leader>ace",
-		require("plugins.copilotchat.actions.explain_code"),
-		desc = "Explain",
 		mode = { "n", "v" },
 	},
 	{
