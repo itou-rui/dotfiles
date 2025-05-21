@@ -1,7 +1,6 @@
 ---@alias CommitType "Basic"|"WIP"|"Merge"|"Squash Merge"
 
 ---@class CommitOpts
----@field commit_type CommitType
 ---@field base_branch string|nil
 ---@field commit_language LanguageName
 
@@ -29,29 +28,28 @@ local fallback_chat_title = {
 
 --- Build sticky context for the given commit type, base branch, and commit language.
 ---@param commit_type CommitType
----@param base_branch string|nil
----@param commit_language LanguageName
+---@param opts CommitOpts
 ---@return table
-local function build_sticky(commit_type, base_branch, commit_language)
+local function build_sticky(commit_type, opts)
 	local git = nil
 	local system = nil
 
 	if commit_type == "Basic" or commit_type == "WIP" then
 		git = "staged"
 	elseif commit_type == "Merge" then
-		system = "git diff " .. base_branch
+		system = "git diff " .. opts.base_branch
 	elseif commit_type == "Squash Merge" then
 		local current_branch = vim.trim(vim.fn.system("git rev-parse --abbrev-ref HEAD"))
 		local show_commit_list_command = "git log "
-			.. base_branch
+			.. opts.base_branch
 			.. ".."
 			.. current_branch
 			.. ' --reverse --pretty="%an -> %s"'
-		system = { "git diff " .. base_branch, show_commit_list_command }
+		system = { "git diff " .. opts.base_branch, show_commit_list_command }
 	end
 
 	return sticky.build({
-		content_language = commit_language,
+		content_language = opts.commit_language,
 		file = { "commitlint.config.js", ".cz-config.js" },
 		git = git,
 		system = system,
@@ -72,9 +70,8 @@ end
 
 --- Open the CopilotChat window for the given commit type, base branch, and commit language.
 ---@param commit_type CommitType
----@param base_branch string|nil
----@param commit_language LanguageName
-local function open_window(commit_type, base_branch, commit_language)
+---@param opts CommitOpts
+local function open_window(commit_type, opts)
 	local prompt = prompts[commit_type]
 
 	local save_chat = function(response)
@@ -86,7 +83,7 @@ local function open_window(commit_type, base_branch, commit_language)
 
 	window.open_float(prompt, {
 		system_prompt = build_system_prompt(),
-		sticky = build_sticky(commit_type, base_branch, commit_language),
+		sticky = build_sticky(commit_type, opts),
 		selection = false,
 		callback = save_chat,
 	})
@@ -94,34 +91,35 @@ end
 
 --- Handle commit language selection and open window.
 ---@param commit_type CommitType
----@param base_branch string|nil
----@param language LanguageName|nil
-local function on_commit_language_selected(commit_type, base_branch, language)
-	if not language or language == "" then
-		language = system_languages.default
+---@param opts CommitOpts
+local function on_commit_language_selected(commit_type, opts)
+	if not opts.commit_language or opts.commit_language == "" then
+		opts.commit_language = system_languages.default
 	end
-	open_window(commit_type, base_branch, language)
+	open_window(commit_type, opts)
 end
 
 --- Prompt user to select commit language.
 ---@param commit_type CommitType
----@param base_branch string|nil
+---@param base_branch string
 local function select_commit_language(commit_type, base_branch)
 	vim.ui.select(system_languages.names, {
 		prompt = "Select language> ",
 	}, function(language)
-		on_commit_language_selected(commit_type, base_branch, language)
+		on_commit_language_selected(commit_type, {
+			base_branch = base_branch,
+			commit_language = language,
+		})
 	end)
 end
 
 --- Prompt user to input base branch.
 ---@param commit_type CommitType
-local function input_base_branch(commit_type)
+local function input_base_branch(commit_type, base_brach_type)
 	vim.ui.input({ prompt = "Enter base branch> " }, function(input)
 		if not input or input == "" then
 			input = "main"
 		end
-
 		select_commit_language(commit_type, input)
 	end)
 end
@@ -129,20 +127,28 @@ end
 --- Prompt user to select base branch.
 ---@param commit_type CommitType
 local function select_base_branch(commit_type)
+	local next = {
+		main = select_commit_language,
+		develop = select_commit_language,
+		Other = input_base_branch,
+	}
+
 	vim.ui.select({ "main", "develop", "Other" }, {
 		prompt = "Select base branch> ",
 	}, function(selected_base_branch)
 		if not selected_base_branch or selected_base_branch == "" then
 			selected_base_branch = "main"
 		end
-
-		if selected_base_branch == "Other" then
-			input_base_branch(commit_type)
-		else
-			select_commit_language(commit_type, selected_base_branch)
-		end
+		next[selected_base_branch](commit_type, selected_base_branch)
 	end)
 end
+
+local next = {
+	Basic = select_commit_language,
+	WIP = select_commit_language,
+	Merge = select_base_branch,
+	["Squash Merge"] = select_base_branch,
+}
 
 M.execute = function()
 	vim.ui.select({ "Basic", "WIP", "Merge", "Squash Merge" }, {
@@ -151,14 +157,7 @@ M.execute = function()
 		if not commit_type or commit_type == "" then
 			return
 		end
-
-		if commit_type == "Basic" or commit_type == "WIP" then
-			select_commit_language(commit_type)
-		elseif commit_type == "Merge" then
-			select_base_branch(commit_type)
-		elseif commit_type == "Squash Merge" then
-			select_base_branch(commit_type)
-		end
+		next[commit_type](commit_type)
 	end)
 end
 

@@ -1,8 +1,8 @@
 ---@alias TranslateTarget "Text"|"Program"
 
 ---@class TranslateOpts
----@field target TranslateTarget
----@field language LanguageName
+---@field programming_language string|nil
+---@field user_language LanguageName|nil
 ---@field restored_selection RestoreSelection
 ---@field selected_files table|nil
 
@@ -32,34 +32,33 @@ local M = {}
 
 --- Get the prompt string for the given target and language.
 ---@param target TranslateTarget
----@param language LanguageName
+---@param opts TranslateOpts
 ---@return string
-local get_prompt = function(target, language)
+local get_prompt = function(target, opts)
 	if target == "Text" then
-		return "Localize the content of a given Selection with `" .. language .. "`."
+		return "Localize the content of a given Selection with `" .. opts.user_language .. "`."
 	end
 	if target == "Program" then
-		return "Reproduce the complete contents of a given Selection in `" .. language .. "`."
+		return "Reproduce the complete contents of a given Selection in `" .. opts.user_language .. "`."
 	end
 	return ""
 end
 
 --- Build sticky context for the given target, language, and selected files.
----@param target TranslateTarget
----@param language LanguageName
----@param selected_files table|nil
----@return table
-local build_sticky = function(target, language, selected_files)
+--- @param target TranslateTarget
+--- @param opts TranslateOpts
+--- @return table
+local build_sticky = function(target, opts)
 	local file = nil
 	local reply_language = nil
 	local content_language = nil
 
 	if target == "Text" then
-		content_language = language
+		content_language = opts.user_language
 	end
 
 	if target == "Program" then
-		file = sticky.build_file_contexts(selected_files)
+		file = sticky.build_file_contexts(opts.selected_files)
 		reply_language = system_languages.default
 		content_language = system_languages.table.en
 	end
@@ -72,11 +71,10 @@ local build_sticky = function(target, language, selected_files)
 end
 
 --- Build the system prompt for the given target, language, and selection.
----@param target TranslateTarget
----@param language LanguageName
----@param restored_selection RestoreSelection
----@return string
-local build_system_prompt = function(target, language, restored_selection)
+--- @param target TranslateTarget
+--- @param opts TranslateOpts
+--- @return string
+local build_system_prompt = function(target, opts)
 	local role = "assistant"
 	local question_focus = nil
 	local specialties = nil
@@ -87,7 +85,8 @@ local build_system_prompt = function(target, language, restored_selection)
 
 	if target == "Program" then
 		question_focus = "selection"
-		specialties = restored_selection and { restored_selection.filetype, language } or { language }
+		specialties = opts.restored_selection and { opts.restored_selection.filetype, opts.programming_language }
+			or { opts.programming_language }
 	end
 
 	return system_prompt.build({
@@ -99,15 +98,13 @@ local build_system_prompt = function(target, language, restored_selection)
 	})
 end
 
---- Open the CopilotChat window for the given target, language, selection, and files.
----@param target TranslateTarget
----@param language LanguageName
----@param restored_selection RestoreSelection
----@param selected_files table|nil
-local open_window = function(target, language, restored_selection, selected_files)
-	local prompt = get_prompt(target, language)
-	local stickies = build_sticky(target, language, selected_files)
-	local system_instruction = build_system_prompt(target, language, restored_selection)
+--- Open the CopilotChat window for the given options.
+--- @param target TranslateTarget
+--- @param opts TranslateOpts
+local open_window = function(target, opts)
+	local prompt = get_prompt(target, opts)
+	local stickies = build_sticky(target, opts)
+	local system_instruction = build_system_prompt(target, opts)
 
 	local save_chat = function(response)
 		chat_history.save(response, { used_prompt = prompt, tag = "Translate" })
@@ -129,44 +126,47 @@ local open_window = function(target, language, restored_selection, selected_file
 	})
 end
 
---- Restore selection and open window for the given target, language, and files.
----@param target TranslateTarget
----@param programming_language string
----@param selected_files table|nil
-local function on_selected_files(target, programming_language, selected_files)
-	if target == "Text" or target == "Program" then
-		selection.restore(function(restored_selection)
-			open_window(target, programming_language, restored_selection, selected_files)
-		end)
-	end
-	open_window(target, programming_language, nil, selected_files)
+--- @param target TranslateTarget
+--- @param opts TranslateOpts
+local function selection_restore(target, opts)
+	selection.restore(function(restored_selection)
+		opts = vim.tbl_extend("force", opts, { target = target, restored_selection = restored_selection })
+		open_window(target, opts)
+	end)
+end
+
+--- Restore selection and open window for the given options.
+--- @param target TranslateTarget
+--- @param opts TranslateOpts
+local function on_selected_files(target, opts)
+	selection_restore(target, opts)
 end
 
 --- Prompt user to select files and handle selection for the given target and language.
----@param target TranslateTarget
----@param programming_language string
-local select_files = function(target, programming_language)
+--- @param target TranslateTarget
+--- @param opts TranslateOpts
+local select_files = function(target, opts)
 	local callback = function(selected_files)
-		on_selected_files(target, programming_language, selected_files)
+		on_selected_files(target, vim.tbl_extend("force", opts, { selected_files = selected_files }))
 	end
-
 	fzf_lua.files({ prompt = "Related Files> ", actions = { ["default"] = callback }, multi = true })
 end
 
 --- Prompt user to select a programming language and proceed to file selection.
----@param target TranslateTarget
+--- @param target TranslateTarget
 local select_programming_language = function(target)
 	local ui_opts = { prompt = "Select language> " }
 	vim.ui.select(programming_languages, ui_opts, function(specialty)
 		if not specialty or specialty == "" then
 			specialty = nil
 		end
-		select_files(target, specialty)
+		local opts = vim.tbl_extend("force", { programming_language = specialty })
+		select_files(target, opts)
 	end)
 end
 
 --- Prompt user to select a user language and restore selection for the given target.
----@param target TranslateTarget
+--- @param target TranslateTarget
 local function select_user_language(target)
 	local ui_opts = { prompt = "Select Language> " }
 	vim.ui.select(system_languages.names, ui_opts, function(selected_language)
@@ -174,10 +174,19 @@ local function select_user_language(target)
 			selected_language = system_languages.default
 		end
 		selection.restore(function(restored_selection)
-			open_window(target, selected_language, restored_selection)
+			local opts = vim.tbl_extend("force", {
+				language = selected_language,
+				restored_selection = restored_selection,
+			})
+			open_window(target, opts)
 		end)
 	end)
 end
+
+local next = {
+	Text = select_user_language,
+	Program = select_programming_language,
+}
 
 M.execute = function()
 	local targets = { "Text", "Program" }
@@ -186,11 +195,7 @@ M.execute = function()
 		if not target or target == "" then
 			return
 		end
-		if target == "Text" then
-			select_user_language(target)
-		elseif target == "Program" then
-			select_programming_language(target)
-		end
+		next[target](target)
 	end)
 end
 

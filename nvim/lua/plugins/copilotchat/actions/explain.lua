@@ -1,7 +1,6 @@
 ---@alias ExplainTarget "Code"|"File"
 
 ---@class ExplainOpts
----@field target ExplainTarget
 ---@field selected_files table|nil
 ---@field restored_selection RestoreSelection
 
@@ -19,7 +18,7 @@ local M = {}
 --- Get the prompt string for the given target.
 ---@param target ExplainTarget
 ---@return string
-local function get_prompt(target)
+local get_prompt = function(target)
 	if target == "Code" then
 		return "Write an explanation for the selected code as paragraphs of text."
 	end
@@ -31,15 +30,13 @@ end
 
 --- Build sticky context for the given target and selected files.
 ---@param target ExplainTarget
----@param selected_files table|nil
+---@param opts ExplainOpts
 ---@return table
-local build_sticky = function(target, selected_files)
+local build_sticky = function(target, opts)
 	local file = nil
-
 	if target == "Code" or target == "File" then
-		file = sticky.build_file_contexts(selected_files)
+		file = sticky.build_file_contexts(opts and opts.selected_files or nil)
 	end
-
 	return sticky.build({
 		reply_language = system_languages.default,
 		file = file,
@@ -48,33 +45,30 @@ end
 
 --- Build the system prompt for the given target and selection.
 ---@param target ExplainTarget
----@param restored_selection RestoreSelection
+---@param opts ExplainOpts
 ---@return string
-local build_system_prompt = function(target, restored_selection)
+local build_system_prompt = function(target, opts)
 	local question_focus = nil
-
 	if target == "Code" or target == "File" then
 		question_focus = "selection"
 	end
-
 	return system_prompt.build({
 		role = "teacher",
 		character = "ai",
 		guideline = { localization = true },
-		specialties = restored_selection and restored_selection.filetype or nil,
+		specialties = opts and opts.restored_selection and opts.restored_selection.filetype or nil,
 		question_focus = question_focus,
 		format = "explain",
 	})
 end
 
---- Open the CopilotChat window for the given target, selected files, and selection.
+--- Open the CopilotChat window for the given target and options.
 ---@param target ExplainTarget
----@param selected_files table|nil
----@param restored_selection RestoreSelection
-local function open_window(target, selected_files, restored_selection)
+---@param opts ExplainOpts
+local open_window = function(target, opts)
 	local prompt = get_prompt(target)
-	local stickies = build_sticky(target, selected_files)
-	local system_instruction = build_system_prompt(target, restored_selection)
+	local stickies = build_sticky(target, opts)
+	local system_instruction = build_system_prompt(target, opts)
 
 	local save_chat = function(response)
 		chat_history.save(response, { used_prompt = prompt, tag = "Explain" })
@@ -99,38 +93,37 @@ local function open_window(target, selected_files, restored_selection)
 	})
 end
 
---- Restore selection and open window for the given target and selected files.
+--- Restore selection and open window for the given target and options.
 ---@param target ExplainTarget
----@param selected_files table|nil
-local function on_selected_files(target, selected_files)
-	if target == "Code" or target == "File" then
-		selection.restore(function(restored_selection)
-			open_window(target, selected_files, restored_selection)
-		end)
-	end
+---@param opts ExplainOpts
+local on_selected_files = function(target, opts)
+	selection.restore(function(restored_selection)
+		open_window(target, vim.tbl_extend("force", opts or {}, { restored_selection = restored_selection }))
+	end)
 end
 
 --- Prompt user to select files and handle selection for the given target.
 ---@param target ExplainTarget
-local function select_files(target)
+local select_files = function(target)
 	local callback = function(selected_files)
-		on_selected_files(target, selected_files)
+		on_selected_files(target, { selected_files = selected_files })
 	end
-
 	fzf_lua.files({ prompt = "Files> ", actions = { ["default"] = callback }, multi = true })
 end
+
+local next = {
+	Code = select_files,
+	File = select_files,
+}
 
 M.execute = function()
 	local targets = { "Code", "File" }
 	local ui_opts = { prompt = "Select target> " }
-
 	vim.ui.select(targets, ui_opts, function(target)
 		if not target or target == "" then
 			return
 		end
-		if target == "Code" or target == "File" then
-			select_files(target)
-		end
+		next[target](target)
 	end)
 end
 
