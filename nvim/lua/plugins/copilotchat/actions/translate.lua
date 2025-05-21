@@ -186,7 +186,7 @@ local select_programming_language = function(target)
 		if not specialty or specialty == "" then
 			specialty = nil
 		end
-		local opts = vim.tbl_extend("force", { programming_language = specialty })
+		local opts = vim.tbl_extend("force", {}, { programming_language = specialty })
 		select_files(target, opts)
 	end)
 end
@@ -200,8 +200,8 @@ local function select_user_language(target)
 			selected_language = system_languages.default
 		end
 		selection.restore(function(restored_selection)
-			local opts = vim.tbl_extend("force", {
-				language = selected_language,
+			local opts = vim.tbl_extend("force", {}, {
+				user_language = selected_language,
 				restored_selection = restored_selection,
 			})
 			open_window(target, opts)

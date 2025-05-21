@@ -2,7 +2,7 @@
 
 ---@class CommitOpts
 ---@field base_branch string|nil
----@field commit_language LanguageName
+---@field commit_language LanguageName|nil
 
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
@@ -115,7 +115,7 @@ end
 
 --- Prompt user to input base branch.
 ---@param commit_type CommitType
-local function input_base_branch(commit_type, base_brach_type)
+local function input_base_branch(commit_type)
 	vim.ui.input({ prompt = "Enter base branch> " }, function(input)
 		if not input or input == "" then
 			input = "main"

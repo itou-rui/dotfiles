@@ -165,6 +165,7 @@ end
 ---@param action ActionType
 ---@param opts FixActionOpts
 local function select_files(action, opts)
+	opts = opts or {}
 	local callback = function(selected_files)
 		on_selected_files(action, {
 			selected_files = selected_files,
