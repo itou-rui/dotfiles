@@ -1,3 +1,7 @@
+---@alias ReviewTarget "Code"|"Spelling"
+---@class ReviewOpts
+---@field restored_selection RestoreSelection
+
 local chat_select = require("CopilotChat.select")
 local copilot_chat_ns = vim.api.nvim_create_namespace("copilot-chat-diagnostics")
 local diagnostics_parser = require("plugins.copilotchat.utils.diagnostics")
@@ -37,6 +41,9 @@ local check_lists = {
 	},
 }
 
+--- Build the prompt string for the given review action.
+---@param target ReviewTarget
+---@return string|nil
 local build_prompt = function(target)
 	local prompt = prompts[target]
 	local check_list = check_lists[target]
@@ -52,6 +59,10 @@ local build_prompt = function(target)
 	return prompt .. "\n\n**Checklist**:\n- " .. table.concat(check_list, "\n- ")
 end
 
+--- Build the system prompt for the given review action and selection.
+---@param target ReviewTarget
+---@param restored_selection RestoreSelection
+---@return string
 local build_system_prompt = function(target, restored_selection)
 	return system_prompt.build({
 		role = "assistant",
@@ -62,12 +73,17 @@ local build_system_prompt = function(target, restored_selection)
 	})
 end
 
+--- Build sticky context for review.
+---@return table
 local function build_sticky()
 	return sticky.build({
 		reply_language = system_languages.default,
 	})
 end
 
+--- Open the CopilotChat window for the given review action and selection.
+---@param target ReviewTarget
+---@param restored_selection RestoreSelection
 local function open_window(target, restored_selection)
 	local prompt = build_prompt(target)
 	if not prompt then
@@ -98,6 +114,8 @@ local function open_window(target, restored_selection)
 	})
 end
 
+--- Restore selection and open window for the given review action.
+---@param target ReviewTarget
 local function on_selected_target(target)
 	selection.restore(function(restored_selection)
 		open_window(target, restored_selection)

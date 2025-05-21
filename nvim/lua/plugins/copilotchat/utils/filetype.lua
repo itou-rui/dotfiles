@@ -1,5 +1,14 @@
+---@alias FiletypeConfigPrompt "angular"|"javascript"|"typescript"|"ansible"|"css"|"docker"|"python"|"neovim"|"rust"|"react"|"zsh"|"gitcommit"|"documentation"
+
+---@class FiletypeConfig
+---@field patterns string[]|nil
+---@field filetypes string[]|nil
+---@field prompts (string|FiletypeConfigPrompt)[]
+---@field contexts string[]|nil
+
 local M = {}
 
+---@type table<string, FiletypeConfig>
 M.FILETYPE_CONFIGS = {
 	angular = {
 		patterns = {
@@ -71,6 +80,7 @@ M.FILETYPE_CONFIGS = {
 }
 
 -- Precompute filetype to config mapping for fast lookup
+---@type table<string, FiletypeConfig>
 local filetype_to_config = {}
 for _, config in pairs(M.FILETYPE_CONFIGS) do
 	if config.filetypes then
@@ -80,7 +90,8 @@ for _, config in pairs(M.FILETYPE_CONFIGS) do
 	end
 end
 
----@param filetype string | table | nil | false
+---@param filetype string|string[]|nil|false
+---@return FiletypeConfigPrompt[]|nil
 M.add_related = function(filetype)
 	if filetype == false then
 		return nil

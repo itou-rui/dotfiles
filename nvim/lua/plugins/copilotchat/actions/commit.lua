@@ -1,3 +1,10 @@
+---@alias CommitType "Basic"|"WIP"|"Merge"|"Squash Merge"
+
+---@class CommitOpts
+---@field commit_type CommitType
+---@field base_branch string|nil
+---@field commit_language LanguageName
+
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 local chat_history = require("plugins.copilotchat.utils.chat_history")
@@ -20,6 +27,11 @@ local fallback_chat_title = {
 	["Squash Merge"] = "Request to Create Squash Merge Commit.",
 }
 
+--- Build sticky context for the given commit type, base branch, and commit language.
+---@param commit_type CommitType
+---@param base_branch string|nil
+---@param commit_language LanguageName
+---@return table
 local function build_sticky(commit_type, base_branch, commit_language)
 	local git = nil
 	local system = nil
@@ -46,6 +58,8 @@ local function build_sticky(commit_type, base_branch, commit_language)
 	})
 end
 
+--- Build the system prompt for commit actions.
+---@return string
 local build_system_prompt = function()
 	return system_prompt.build({
 		role = "commiter",
@@ -56,6 +70,10 @@ local build_system_prompt = function()
 	})
 end
 
+--- Open the CopilotChat window for the given commit type, base branch, and commit language.
+---@param commit_type CommitType
+---@param base_branch string|nil
+---@param commit_language LanguageName
 local function open_window(commit_type, base_branch, commit_language)
 	local prompt = prompts[commit_type]
 
@@ -74,6 +92,10 @@ local function open_window(commit_type, base_branch, commit_language)
 	})
 end
 
+--- Handle commit language selection and open window.
+---@param commit_type CommitType
+---@param base_branch string|nil
+---@param language LanguageName|nil
 local function on_commit_language_selected(commit_type, base_branch, language)
 	if not language or language == "" then
 		language = system_languages.default
@@ -81,6 +103,9 @@ local function on_commit_language_selected(commit_type, base_branch, language)
 	open_window(commit_type, base_branch, language)
 end
 
+--- Prompt user to select commit language.
+---@param commit_type CommitType
+---@param base_branch string|nil
 local function select_commit_language(commit_type, base_branch)
 	vim.ui.select(system_languages.names, {
 		prompt = "Select language> ",
@@ -89,6 +114,8 @@ local function select_commit_language(commit_type, base_branch)
 	end)
 end
 
+--- Prompt user to input base branch.
+---@param commit_type CommitType
 local function input_base_branch(commit_type)
 	vim.ui.input({ prompt = "Enter base branch> " }, function(input)
 		if not input or input == "" then
@@ -99,6 +126,8 @@ local function input_base_branch(commit_type)
 	end)
 end
 
+--- Prompt user to select base branch.
+---@param commit_type CommitType
 local function select_base_branch(commit_type)
 	vim.ui.select({ "main", "develop", "Other" }, {
 		prompt = "Select base branch> ",

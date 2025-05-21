@@ -1,6 +1,8 @@
+---@alias RestoreSelection CopilotChat.select.selection|nil
+
 local M = {}
 
----@param callback fun(selection?: CopilotChat.select.selection)
+---@param callback fun(selection?: RestoreSelection)
 ---@param delay_ms? number
 M.restore = function(callback, delay_ms)
 	delay_ms = delay_ms or 20
