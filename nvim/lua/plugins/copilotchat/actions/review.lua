@@ -91,7 +91,7 @@ local function open_window(target, restored_selection)
 		sticky = build_sticky(),
 		selection = callback_selection,
 		callback = function(response, source)
-			chat_history.save(response, { used_prompt = prompt, tag = "Review" })
+			chat_history.save(response, { used_prompt = prompt, tag = "Review" .. target })
 			set_diagnostic(response, source)
 			return response
 		end,
