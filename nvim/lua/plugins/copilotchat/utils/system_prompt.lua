@@ -21,7 +21,7 @@ end
 --- @field specialties nil | false | table<("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "gitcommit")> | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "gitcommit")
 --- @field guideline nil | Guideline
 --- @field question_focus nil | "selection"
---- @field format nil | "explain" | "review" | "fix_bug" | "commit"
+--- @field format nil | "explain" | "review" | "fix_bug" | "commit"|"developer_document"
 
 M.roles = {
 	"assistant",

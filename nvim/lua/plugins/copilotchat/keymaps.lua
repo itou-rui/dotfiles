@@ -63,18 +63,20 @@ return {
 		mode = { "n", "v" },
 	},
 
+	-- Document
+	{
+		"<leader>ad",
+		require("plugins.copilotchat.actions.document").execute,
+		desc = "Document",
+		mode = { "n", "v" },
+	},
+
 	-- Code
 	{ "<leader>ac", "", desc = "Code actions", mode = { "n", "v" } },
 	{
 		"<leader>aca",
 		require("plugins.copilotchat.actions.code.analyze"),
 		desc = "Analyze",
-		mode = { "n", "v" },
-	},
-	{
-		"<leader>acd",
-		require("plugins.copilotchat.actions.code.doc"),
-		desc = "Doc",
 		mode = { "n", "v" },
 	},
 
