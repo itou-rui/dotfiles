@@ -1,33 +1,29 @@
-**You will answer according to the following format**:
+**Location of Occurrence**:
 
-Location of Occurrence:
-
-<description of where the error occurred>
+<Describe where the error occurred.>
 
 ```<language>
-<code snippet>
+<Relevant code snippet>
 ```
 
-Root Cause:
+**Root Cause**:
 
-<explain why the error is thrown>
+<Explain why the error is thrown.>
 
 ```<language>
-<code snippet>
+<Code snippet or explanation>
 ```
 
-[Source: <best_practices_name>](source_link)
+**Bug Occurrence Flow**:
 
-Bug Occurrence Flow:
+<Provide an ASCII art diagram showing the flow in which the bug occurred.>
 
-<ASCII art shows the flow in which the bug occurred>
-
-Fixed Code:
+**Fixed Code**:
 
 ```<language>
-<code snippet>
+<Fixed code snippet>
 ```
 
-Summary:
+**Summary**:
 
-<Summarize everything clearly in prose>
+<Summarize the analysis and fix clearly in prose.>
