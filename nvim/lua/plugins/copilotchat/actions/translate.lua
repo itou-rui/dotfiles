@@ -30,18 +30,48 @@ local programming_languages = {
 
 local M = {}
 
+local prompts = {
+	Text = "Localize the content of a given Selection with `%language`.",
+	Program = "Reproduce the complete contents of a given Selection in `%language`.",
+}
+
+local note_lists = {
+	Text = {
+		"Please translate considering the context and use native expressions in the target language, not just a literal translation.",
+		"Do not change the original meaning of the text.",
+	},
+	Program = {
+		"Preserve the internal structure between the source and translated code (e.g., variable names, arguments).",
+		"Ensure the translated code behaves identically to the original.",
+		"Reproduce any features or dependencies present in the original code.",
+		"Retain all comments and documentation from the original code in the translation.",
+	},
+}
+
 --- Get the prompt string for the given target and language.
 ---@param target TranslateTarget
 ---@param opts TranslateOpts
----@return string
-local get_prompt = function(target, opts)
+---@return string|nil
+local build_prompt = function(target, opts)
+	local prompt = prompts[target]
+	local note_list = note_lists[target]
+
+	if not prompt or prompt == "" then
+		return nil
+	end
+
+	if not note_list or #note_list == 0 then
+		return prompt
+	end
+
 	if target == "Text" then
-		return "Localize the content of a given Selection with `" .. opts.user_language .. "`."
+		prompt = prompt:gsub("%%language", opts.user_language)
 	end
 	if target == "Program" then
-		return "Reproduce the complete contents of a given Selection in `" .. opts.user_language .. "`."
+		prompt = prompt:gsub("%%language", opts.programming_language)
 	end
-	return ""
+
+	return prompt .. "\n\n**Note**:\n- " .. table.concat(note_list, "\n- ")
 end
 
 --- Build sticky context for the given target, language, and selected files.
@@ -75,26 +105,18 @@ end
 --- @param opts TranslateOpts
 --- @return string
 local build_system_prompt = function(target, opts)
-	local role = "assistant"
-	local question_focus = nil
-	local specialties = nil
-
-	if target == "Text" then
-		question_focus = "selection"
-	end
-
-	if target == "Program" then
-		question_focus = "selection"
-		specialties = opts.restored_selection and { opts.restored_selection.filetype, opts.programming_language }
-			or { opts.programming_language }
-	end
+	local specialties = {
+		Text = nil,
+		Program = opts.restored_selection and { opts.restored_selection.filetype, opts.programming_language }
+			or { opts.programming_language },
+	}
 
 	return system_prompt.build({
-		role = role,
+		role = "assistant",
 		character = "ai",
 		guideline = { localization = true },
-		specialties = specialties,
-		question_focus = question_focus,
+		specialties = specialties[target],
+		question_focus = "selection",
 	})
 end
 
@@ -102,7 +124,11 @@ end
 --- @param target TranslateTarget
 --- @param opts TranslateOpts
 local open_window = function(target, opts)
-	local prompt = get_prompt(target, opts)
+	local prompt = build_prompt(target, opts)
+	if not prompt then
+		return
+	end
+
 	local stickies = build_sticky(target, opts)
 	local system_instruction = build_system_prompt(target, opts)
 
