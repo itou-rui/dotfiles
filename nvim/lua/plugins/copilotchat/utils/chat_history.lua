@@ -280,7 +280,7 @@ Response (what the AI provided):
 
 ---@class Opts
 ---@field used_prompt nil|string
----@field tag "NewChat"|"Commit"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"FixBug"|"Translate"|"Write"|"ReviewCode"|"ReviewSpelling"|
+---@field tag "NewChat"|"Commit"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"FixBug"|"Translate"|"Write"|"ReviewCode"|"ReviewSpelling"|"Comment"|"CodeDoc"|"APIDoc"|"DevDoc"
 
 ---@param response string
 ---@param opts Opts|nil
