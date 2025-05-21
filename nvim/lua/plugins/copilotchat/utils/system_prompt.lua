@@ -116,6 +116,7 @@ M.build = function(opts)
 
 	-- Format
 	if opts.format then
+		table.insert(prompt_parts, load_prompt(prompt_path("formats/" .. "base.md")))
 		table.insert(prompt_parts, load_prompt(prompt_path("formats/" .. opts.format .. ".md")))
 	end
 

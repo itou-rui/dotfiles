@@ -1,5 +1,3 @@
-**You will answer according to the following format**:
-
 1. Basic:
 
 ```gitcommit

@@ -1,5 +1,3 @@
-**You will answer according to the following format**:
-
 **Overview**:
 
 <Provide a concise high-level overview first>
