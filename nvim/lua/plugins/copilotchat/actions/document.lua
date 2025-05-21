@@ -1,3 +1,10 @@
+---@alias DocumentAction "Comment"|"Code Document"|"API Document"|"Developer Document"
+
+---@class DocumentOpts
+---@field user_language LanguageName
+---@field selected_files table|nil
+---@field restored_selection RestoreSelection
+
 local chat_select = require("CopilotChat.select")
 local fzf_lua = require("fzf-lua")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
@@ -46,6 +53,9 @@ local tags = {
 	["Developer Document"] = "DevDoc",
 }
 
+--- Build the prompt string for the given document action.
+---@param action DocumentAction
+---@return string|nil
 local build_prompt = function(action)
 	local prompt = prompts[action]
 	local note_list = note_lists[action]
@@ -61,6 +71,10 @@ local build_prompt = function(action)
 	return prompt .. "\n\n**Note**:\n\n- " .. table.concat(note_list, "\n- ")
 end
 
+--- Build the system prompt for the given document action and selection.
+---@param action DocumentAction
+---@param restored_selection RestoreSelection
+---@return string
 local function build_system_prompt(action, restored_selection)
 	local format = nil
 
@@ -77,7 +91,10 @@ local function build_system_prompt(action, restored_selection)
 		format = format,
 	})
 end
-
+--- Build sticky context for the given user language and selected files.
+---@param user_language LanguageName
+---@param selected_files table|nil
+---@return table
 local function build_sticky(user_language, selected_files)
 	return sticky.build({
 		reply_language = system_languages.default,
@@ -86,6 +103,11 @@ local function build_sticky(user_language, selected_files)
 	})
 end
 
+--- Open the CopilotChat window for the given document action and options.
+---@param action DocumentAction
+---@param user_language LanguageName
+---@param selected_files table|nil
+---@param restored_selection RestoreSelection
 local open_window = function(action, user_language, selected_files, restored_selection)
 	local prompt = build_prompt(action)
 	if not prompt then
@@ -109,12 +131,19 @@ local open_window = function(action, user_language, selected_files, restored_sel
 	})
 end
 
+--- Restore selection and open window for the given document action and options.
+---@param target DocumentAction
+---@param user_language LanguageName
+---@param selected_files table|nil
 local function on_selected_files(target, user_language, selected_files)
 	selection.restore(function(restored_selection)
 		open_window(target, user_language, selected_files, restored_selection)
 	end)
 end
 
+--- Prompt user to select files and handle selection for the given document action and user language.
+---@param action DocumentAction
+---@param user_language LanguageName
 local function select_files(action, user_language)
 	local callback = function(selected_files)
 		on_selected_files(action, user_language, selected_files)
@@ -122,6 +151,8 @@ local function select_files(action, user_language)
 	fzf_lua.files({ prompt = "Files> ", actions = { ["default"] = callback }, multi = true })
 end
 
+--- Prompt user to select a language and proceed to file selection for the given document action.
+---@param actions DocumentAction
 local select_user_language = function(actions)
 	local ui_opts = { prompt = "Select language> " }
 	vim.ui.select(system_languages.names, ui_opts, function(user_language)

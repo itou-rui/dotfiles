@@ -1,4 +1,42 @@
+---@alias Role
+---| "assistant"
+---| "teacher"
+---| "reviewer"
+---| "architect"
+---| "debugger"
+---| "DevOps"
+---| "performer"
+---| "tester"
+---| "security"
+---| "commiter"
+---| "documenter"
+
+---@alias Character
+---| "ai"
+---| "friendly"
+---| "cute"
+---| "tsundere"
+
+---@alias Specialty string|FiletypeConfigPrompt
+
+---@class Guideline
+---@field change_code boolean|nil
+---@field localization boolean|nil
+
+---@alias QuestionFocus "selection"
+
+---@alias Format "explain" | "review" | "fix_bug" | "commit" | "developer_document"
+
+---@class BuildOptions
+---@field role Role|nil
+---@field character Character|nil
+---@field specialties Specialty|false|table<Specialty>|nil
+---@field guideline Guideline|nil
+---@field question_focus QuestionFocus|nil
+---@field format Format|nil
+
 local filetype = require("plugins.copilotchat.utils.filetype")
+
 local M = {}
 
 local function load_prompt(file_path)
@@ -11,18 +49,7 @@ local function load_prompt(file_path)
 	return content
 end
 
---- @class Guideline
---- @field change_code nil | boolean
---- @field localization nil | boolean
-
---- @class BuildOptions
---- @field role nil | "assistant" | "teacher" | "reviewer" | "architect" | "debugger" | "DevOps" | "performer" | "tester" | "security" | "commiter"|"documenter"
---- @field character nil | "ai" | "friendly" | "cute" | "tsundere"
---- @field specialties nil | false | table<("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "gitcommit")> | ("ts" | "js" | "python" | "rust" | "docker" | "react" | "neovim" | "lua" | "zsh" | "ansible" | "css" | "gitcommit")
---- @field guideline nil | Guideline
---- @field question_focus nil | "selection"
---- @field format nil | "explain" | "review" | "fix_bug" | "commit"|"developer_document"
-
+---@type Role[]
 M.roles = {
 	"assistant",
 	"teacher",
@@ -37,6 +64,7 @@ M.roles = {
 	"documenter",
 }
 
+---@type Character[]
 M.characters = {
 	"ai",
 	"friendly",
@@ -44,6 +72,7 @@ M.characters = {
 	"tsundere",
 }
 
+---@return Specialty[]
 M.specialties = (function()
 	local specialties_set = {}
 	for _, config in pairs(filetype.FILETYPE_CONFIGS) do
@@ -61,7 +90,8 @@ M.specialties = (function()
 	return specialties
 end)()
 
---- @param opts BuildOptions
+---@param opts BuildOptions
+---@return string
 M.build = function(opts)
 	-- Helper to build prompt path
 	local config_path = vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/"

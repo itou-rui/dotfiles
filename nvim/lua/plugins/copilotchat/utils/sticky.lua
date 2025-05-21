@@ -1,19 +1,3 @@
-local M = {}
-
-local RegisterSymbolMap = {
-	["system_clipboard"] = "+",
-	["selection_clipboard"] = "*",
-	["unnamed"] = '"',
-	["last_yank"] = "0",
-	["small_delete"] = "-",
-	["last_inserted"] = ".",
-	["current_file"] = "%",
-	["last_command"] = ":",
-	["alternate_buffer"] = "#",
-	["expression"] = "=",
-	["last_search"] = "/",
-}
-
 ---@alias Register
 ---| 'system_clipboard'                -- synchronized with the system clipboard
 ---| 'selection_clipboard'             -- synchronized with the selection clipboard
@@ -42,6 +26,27 @@ local RegisterSymbolMap = {
 ---@field reply_language nil|string
 ---@field content_language nil|string
 
+local M = {}
+
+--- Map of register names to symbols.
+---@type table<Register, string>
+M.RegisterSymbolMap = {
+	["system_clipboard"] = "+",
+	["selection_clipboard"] = "*",
+	["unnamed"] = '"',
+	["last_yank"] = "0",
+	["small_delete"] = "-",
+	["last_inserted"] = ".",
+	["current_file"] = "%",
+	["last_command"] = ":",
+	["alternate_buffer"] = "#",
+	["expression"] = "=",
+	["last_search"] = "/",
+}
+
+--- Normalize selected files to a table of strings.
+---@param selected_files string|table<string>|nil
+---@return table<string>
 local function normalize_selected_files(selected_files)
 	if type(selected_files) == "string" then
 		return { selected_files }
@@ -49,7 +54,9 @@ local function normalize_selected_files(selected_files)
 	return selected_files or {}
 end
 
----@param selected_files string|table<string>
+--- Build file contexts from selected files.
+---@param selected_files string|table<string>|nil
+---@return table<string>
 function M.build_file_contexts(selected_files)
 	selected_files = normalize_selected_files(selected_files)
 	local file_contexts = {}
@@ -64,6 +71,11 @@ function M.build_file_contexts(selected_files)
 	return file_contexts
 end
 
+--- Add a field to the sticky context.
+---@param sticky table
+---@param fields Fields
+---@param field string
+---@param prefix string
 local function add_field(sticky, fields, field, prefix)
 	local value = fields[field]
 	if not value then
@@ -83,12 +95,18 @@ local function add_field(sticky, fields, field, prefix)
 	end
 end
 
+--- Add register(s) to the sticky context.
+---@param sticky table
+---@param reg Register|table<Register>|nil
 local function add_register(sticky, reg)
 	if not reg then
 		return
 	end
+
+	---@param val Register|table<Register>
+	---@param seen table<string, boolean>
 	local function add_register_inner(val, seen)
-		local symbol = RegisterSymbolMap[val] or val
+		local symbol = M.RegisterSymbolMap[val] or val
 		local key = tostring(symbol)
 		if not seen[key] then
 			table.insert(sticky, "#register:" .. key)
@@ -105,10 +123,16 @@ local function add_register(sticky, reg)
 	end
 end
 
+--- Add system command(s) to the sticky context.
+---@param sticky table
+---@param sys string|table<string>|nil
 local function add_system(sticky, sys)
 	if not sys then
 		return
 	end
+
+	---@param val string|table<string>
+	---@param seen table<string, boolean>
 	local function add_system_inner(val, seen)
 		local key = tostring(val)
 		if not seen[key] then
@@ -126,7 +150,9 @@ local function add_system(sticky, sys)
 	end
 end
 
+--- Build the sticky context array from fields.
 ---@param fields Fields
+---@return table
 function M.build(fields)
 	local sticky = {}
 

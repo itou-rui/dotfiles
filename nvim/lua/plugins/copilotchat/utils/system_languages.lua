@@ -7,6 +7,7 @@
 ---@field names LanguageName[]
 local M = {}
 
+---@return LanguageCode[]
 local function get_system_languages()
 	if vim.fn.has("mac") == 1 then
 		local raw_list = vim.fn.system("defaults read -g AppleLanguages")
@@ -28,6 +29,7 @@ end
 
 M.raw_lang = get_system_languages()
 
+---@type table<LanguageCode, LanguageName>
 M.table = {
 	en = "English",
 	ja = "Japanese",
@@ -41,11 +43,16 @@ M.table = {
 	ko = "Korean",
 }
 
+---@type LanguageCode[]
 M.codes = vim.tbl_keys(M.table)
+
+---@type LanguageName[]
 M.names = vim.tbl_values(M.table)
 
 local first_lang = M.raw_lang[1] or "en"
 local lang_code = first_lang:match("^([%a]+)") or "en"
+
+---@type LanguageName
 M.default = M.table[lang_code] or M.table["en"]
 
 return M

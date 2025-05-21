@@ -1,3 +1,9 @@
+---@alias ChatHistoryTag "NewChat"|"Commit"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"FixBug"|"Translate"|"Write"|"ReviewCode"|"ReviewSpelling"|"Comment"|"CodeDoc"|"APIDoc"|"DevDoc"|"FixIssues"
+
+---@class ChatHistoryOpts
+---@field used_prompt nil|string
+---@field tag ChatHistoryTag
+
 local M = {}
 
 local chat = require("CopilotChat")
@@ -5,6 +11,7 @@ local scandir = require("plenary.scandir")
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local CHAT_HISTORY_DIR = vim.fn.stdpath("data") .. "/copilotchat_history"
 
+---@param days number|string|nil
 M.delete = function(days)
 	local files = scandir.scan_dir(CHAT_HISTORY_DIR, {
 		search_pattern = "%.json$",
@@ -41,6 +48,8 @@ M.delete = function(days)
 	end
 end
 
+---@param encoded_title string
+---@return string|nil
 local function decode_title(encoded_title)
 	-- Extract the timestamp part (before first underscore)
 	local timestamp, encoded = encoded_title:match("^(%d%d%d%d%d%d%d%d_%d%d%d%d%d%d)_(.+)$")
@@ -80,8 +89,11 @@ local function decode_title(encoded_title)
 	else
 		return encoded_title -- Fallback to encoded if decoding fails
 	end
+	return nil
 end
 
+---@param timestamp number
+---@return string|osdate
 local function fmt_relative_time(timestamp)
 	-- Get current timestamp for relative time calculations
 	local now = os.time()
@@ -278,12 +290,8 @@ Response (what the AI provided):
 ```
 ]]
 
----@class Opts
----@field used_prompt nil|string
----@field tag "NewChat"|"Commit"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"FixBug"|"Translate"|"Write"|"ReviewCode"|"ReviewSpelling"|"Comment"|"CodeDoc"|"APIDoc"|"DevDoc"
-
 ---@param response string
----@param opts Opts|nil
+---@param opts ChatHistoryOpts|nil
 M.save = function(response, opts)
 	if response == nil or response == "" then
 		vim.notify("Could not save because of no response.", vim.log.levels.WARN)

@@ -1,3 +1,13 @@
+---@alias ChatRole Role
+---@alias ChatCharacter Character
+---@alias ChatSpecialty Specialty
+
+---@class ChatOpenOpts
+---@field role ChatRole|nil
+---@field character ChatCharacter|nil
+---@field specialty ChatSpecialty|nil
+---@field style "float"|"vertical"|nil
+
 local chat_select = require("CopilotChat.select")
 local system_languages = require("plugins.copilotchat.utils.system_languages")
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
@@ -8,6 +18,11 @@ local selection = require("plugins.copilotchat.utils.selection")
 
 local M = {}
 
+--- Generate a system prompt string based on role, character, and specialty.
+---@param role ChatRole|nil
+---@param character ChatCharacter|nil
+---@param specialty ChatSpecialty|nil
+---@return string|nil
 local function generate_system_prompt(role, character, specialty)
 	if not role or not character then
 		return nil
@@ -29,6 +44,11 @@ local function generate_system_prompt(role, character, specialty)
 	return table.concat(parts)
 end
 
+--- Fallback chat title generator.
+---@param role ChatRole|nil
+---@param character ChatCharacter|nil
+---@param specialty ChatSpecialty|nil
+---@return string
 local function fallback_chat_title(role, character, specialty)
 	-- Capitalize helper (same as in generate_system_prompt)
 	local function capitalize(str)
@@ -59,6 +79,11 @@ local function fallback_chat_title(role, character, specialty)
 	end
 end
 
+--- Open the chat window with the given options.
+---@param role ChatRole|nil
+---@param character ChatCharacter|nil
+---@param specialty ChatSpecialty|nil
+---@param style "float"|"vertical"|nil
 local function open_chat_window(role, character, specialty, style)
 	local fallback_selection = function(source)
 		return chat_select.visual(source) or chat_select.buffer(source)
@@ -98,6 +123,10 @@ local function open_chat_window(role, character, specialty, style)
 	end)
 end
 
+--- Prompt user to select window style and open chat window.
+---@param role ChatRole|nil
+---@param character ChatCharacter|nil
+---@param specialty ChatSpecialty|nil
 local function select_style(role, character, specialty)
 	vim.ui.select({ "float", "vertical" }, {
 		prompt = "Select window style> ",
@@ -108,6 +137,10 @@ local function select_style(role, character, specialty)
 	end)
 end
 
+--- Handle specialty selection and proceed to style selection.
+---@param role ChatRole|nil
+---@param character ChatCharacter|nil
+---@param specialty ChatSpecialty|nil
 local function on_specialty_selected(role, character, specialty)
 	if not specialty or specialty == "" then
 		specialty = nil
@@ -115,6 +148,9 @@ local function on_specialty_selected(role, character, specialty)
 	select_style(role, character, specialty)
 end
 
+--- Prompt user to select specialty.
+---@param role ChatRole|nil
+---@param character ChatCharacter|nil
 local function select_specialty(role, character)
 	vim.ui.select(system_prompt.specialties, {
 		prompt = "Select specialty> ",
@@ -123,6 +159,9 @@ local function select_specialty(role, character)
 	end)
 end
 
+--- Handle character selection and proceed to specialty selection.
+---@param role ChatRole|nil
+---@param character ChatCharacter|nil
 local function on_character_selected(role, character)
 	if not character or character == "" then
 		character = "friendly"
@@ -130,6 +169,8 @@ local function on_character_selected(role, character)
 	select_specialty(role, character)
 end
 
+--- Prompt user to select character.
+---@param role ChatRole|nil
 local function select_character(role)
 	vim.ui.select(system_prompt.characters, {
 		prompt = "Select character> ",
@@ -138,6 +179,8 @@ local function select_character(role)
 	end)
 end
 
+--- Handle role selection and proceed to next step.
+---@param role ChatRole|nil
 local function on_role_selected(role)
 	if not role or role == "" then
 		role = "assistant"
