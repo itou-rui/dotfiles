@@ -73,9 +73,9 @@ end
 
 --- Build the system prompt for the given document action and selection.
 ---@param action DocumentAction
----@param restored_selection RestoreSelection
+---@param opts DocumentOpts
 ---@return string
-local function build_system_prompt(action, restored_selection)
+local build_system_prompt = function(action, opts)
 	local format = nil
 
 	if action == "Developer Document" then
@@ -86,29 +86,28 @@ local function build_system_prompt(action, restored_selection)
 		role = "documenter",
 		character = "ai",
 		guideline = { change_code = true, localization = true },
-		specialties = restored_selection and { restored_selection.filetype, "markdown" } or { "markdown" },
+		specialties = opts.restored_selection and { opts.restored_selection.filetype, "markdown" } or { "markdown" },
 		question_focus = "selection",
 		format = format,
 	})
 end
+
 --- Build sticky context for the given user language and selected files.
----@param user_language LanguageName
----@param selected_files table|nil
+---@param action DocumentAction
+---@param opts DocumentOpts
 ---@return table
-local function build_sticky(user_language, selected_files)
+local build_sticky = function(action, opts)
 	return sticky.build({
 		reply_language = system_languages.default,
-		content_language = user_language,
-		file = sticky.build_file_contexts(selected_files),
+		content_language = opts.user_language,
+		file = sticky.build_file_contexts(opts.selected_files),
 	})
 end
 
 --- Open the CopilotChat window for the given document action and options.
 ---@param action DocumentAction
----@param user_language LanguageName
----@param selected_files table|nil
----@param restored_selection RestoreSelection
-local open_window = function(action, user_language, selected_files, restored_selection)
+---@param opts DocumentOpts
+local open_window = function(action, opts)
 	local prompt = build_prompt(action)
 	if not prompt then
 		return
@@ -124,53 +123,58 @@ local open_window = function(action, user_language, selected_files, restored_sel
 	end
 
 	window.open_vertical(prompt, {
-		system_prompt = build_system_prompt(action, restored_selection),
-		sticky = build_sticky(user_language, selected_files),
+		system_prompt = build_system_prompt(action, opts),
+		sticky = build_sticky(action, opts),
 		selection = callback_selection,
 		callback = save_chat,
 	})
 end
 
 --- Restore selection and open window for the given document action and options.
----@param target DocumentAction
----@param user_language LanguageName
----@param selected_files table|nil
-local function on_selected_files(target, user_language, selected_files)
+---@param action DocumentAction
+---@param opts DocumentOpts
+local on_selected_files = function(action, opts)
 	selection.restore(function(restored_selection)
-		open_window(target, user_language, selected_files, restored_selection)
+		open_window(action, vim.tbl_extend("force", opts or {}, { restored_selection = restored_selection }))
 	end)
 end
 
 --- Prompt user to select files and handle selection for the given document action and user language.
 ---@param action DocumentAction
----@param user_language LanguageName
-local function select_files(action, user_language)
+local select_files = function(action, opts)
 	local callback = function(selected_files)
-		on_selected_files(action, user_language, selected_files)
+		on_selected_files(action, vim.tbl_extend("force", opts or {}, { selected_files = selected_files }))
 	end
 	fzf_lua.files({ prompt = "Files> ", actions = { ["default"] = callback }, multi = true })
 end
 
 --- Prompt user to select a language and proceed to file selection for the given document action.
----@param actions DocumentAction
-local select_user_language = function(actions)
+---@param action DocumentAction
+local select_user_language = function(action)
 	local ui_opts = { prompt = "Select language> " }
 	vim.ui.select(system_languages.names, ui_opts, function(user_language)
 		if not user_language or user_language == "" then
 			user_language = system_languages.default
 		end
-		select_files(actions, user_language)
+		select_files(action, { user_language = user_language })
 	end)
 end
+
+local next = {
+	["Comment"] = select_user_language,
+	["Code Document"] = select_user_language,
+	["API Document"] = select_user_language,
+	["Developer Document"] = select_user_language,
+}
 
 M.execute = function()
 	local actions = { "Comment", "Code Document", "API Document", "Developer Document" }
 	local ui_opts = { prompt = "Select target> " }
-	vim.ui.select(actions, ui_opts, function(target)
-		if not target or target == "" then
+	vim.ui.select(actions, ui_opts, function(action)
+		if not action or action == "" then
 			return
 		end
-		select_user_language(target)
+		next[action](action)
 	end)
 end
 
