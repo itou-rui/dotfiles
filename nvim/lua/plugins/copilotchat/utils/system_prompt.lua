@@ -90,6 +90,35 @@ M.specialties = (function()
 	return specialties
 end)()
 
+--- Converts the given role, character, and optional specialty into a "sticky" identifier string.
+--- The function capitalizes each component and concatenates them in the order: character, specialty (if provided), and role.
+---
+--- This is typically used to generate a unique, human-readable identifier for a system prompt persona or configuration.
+---
+--- Example:
+---   to_sticky("assistant", "ai", "python") --> "AIPythonAssistant"
+---   to_sticky("user", "developer")         --> "DeveloperUser"
+---
+--- @param role Role                -- The role of the entity (e.g., "assistant", "user").
+--- @param character Character      -- The character or persona name (e.g., "ai").
+--- @param specialty Specialty|nil  -- An optional specialty or sub-role (e.g., "python").
+--- @return string                  -- The concatenated, capitalized identifier string, or nil if inputs are invalid.
+M.to_sticky = function(role, character, specialty)
+	---@param str string
+	local function capitalize(str)
+		return str == "ai" and "AI" or (str:gsub("^%l", string.upper))
+	end
+
+	local r = capitalize(role)
+	local c = capitalize(character)
+	if specialty and specialty ~= "" then
+		local s = capitalize(specialty)
+		return s .. c .. r
+	else
+		return c .. r
+	end
+end
+
 ---@param opts BuildOptions
 ---@return string
 M.build = function(opts)
