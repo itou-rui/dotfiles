@@ -1,15 +1,15 @@
 return {
 
 	-- Toggle window
-	{ "<leader>aa", "", desc = "Toggle window", mode = { "n", "v" } },
+	{ "<leader>at", "", desc = "Toggle window", mode = { "n", "v" } },
 	{
-		"<leader>aav",
+		"<leader>atv",
 		require("plugins.copilotchat.utils.window").toggle_vertical,
 		desc = "Vertical",
 		mode = { "n", "v" },
 	},
 	{
-		"<leader>aaf",
+		"<leader>atf",
 		require("plugins.copilotchat.utils.window").toggle_float,
 		desc = "Float",
 		mode = { "n", "v" },
@@ -71,11 +71,10 @@ return {
 		mode = { "n", "v" },
 	},
 
-	-- Code
-	{ "<leader>ac", "", desc = "Code actions", mode = { "n", "v" } },
+	-- Analyze
 	{
-		"<leader>aca",
-		require("plugins.copilotchat.actions.code.analyze"),
+		"<leader>aa",
+		require("plugins.copilotchat.actions.analyze").execute,
 		desc = "Analyze",
 		mode = { "n", "v" },
 	},
