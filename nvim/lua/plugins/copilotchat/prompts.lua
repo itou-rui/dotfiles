@@ -2,179 +2,126 @@ local M = {}
 
 local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 
-local function build_assistant(specialty)
-	return system_prompt.build({
-		role = "assistant",
-		character = "ai",
-		guideline = { change_code = true, localization = true },
-		question_focus = "selection",
-		specialties = specialty,
-	})
-end
-
-local function build_teacher(character, specialty)
-	return system_prompt.build({
-		role = "teacher",
-		character = character,
-		guideline = { localization = true },
-		specialties = specialty,
-	})
-end
-
-local build_documenter = function(specialty)
-	return system_prompt.build({
-		role = "documenter",
-		character = "ai",
-		guideline = { change_code = true, localization = true },
-		specialties = specialty,
-	})
-end
-
-M.prompts = {
-	-- Assistants
-	Assistant = {
-		system_prompt = build_assistant(""),
-	},
-	LuaAssistant = {
-		system_prompt = build_assistant("lua"),
-	},
-	TypescriptAssistant = {
-		system_prompt = build_assistant("typescript"),
-	},
-	JavascriptAssistant = {
-		system_prompt = build_assistant("javascript"),
-	},
-	PythonAssistant = {
-		system_prompt = build_assistant("python"),
-	},
-	DockerAssistant = {
-		system_prompt = build_assistant("docker"),
-	},
-	ReactAssistant = {
-		system_prompt = build_assistant("react"),
-	},
-	ZshAssistant = {
-		system_prompt = build_assistant("zsh"),
-	},
-	CssAssistant = {
-		system_prompt = build_assistant("css"),
-	},
-
-	-- Friendly Teacher
-	FriendlyTeacher = {
-		system_prompt = build_teacher("friendly", ""),
-	},
-	FriendlyLuaTeacher = {
-		system_prompt = build_teacher("friendly", "lua"),
-	},
-	FriendlyTypescriptTeacher = {
-		system_prompt = build_teacher("friendly", "typescript"),
-	},
-	FriendlyJavascriptTeacher = {
-		system_prompt = build_teacher("friendly", "javascript"),
-	},
-	FriendlyPythonTeacher = {
-		system_prompt = build_teacher("friendly", "python"),
-	},
-	FriendlyDockerTeacher = {
-		system_prompt = build_teacher("friendly", "docker"),
-	},
-	FriendlyReactTeacher = {
-		system_prompt = build_teacher("friendly", "react"),
-	},
-	FriendlyZshTeacher = {
-		system_prompt = build_teacher("friendly", "zsh"),
-	},
-	FriendlyCssTeacher = {
-		system_prompt = build_teacher("friendly", "css"),
-	},
-
-	-- Cute Teacher
-	CuteTeacher = {
-		system_prompt = build_teacher("cute", ""),
-	},
-	CuteLuaTeacher = {
-		system_prompt = build_teacher("cute", "lua"),
-	},
-	CuteTypescriptTeacher = {
-		system_prompt = build_teacher("cute", "typescript"),
-	},
-	CuteJavascriptTeacher = {
-		system_prompt = build_teacher("cute", "javascript"),
-	},
-	CutePythonTeacher = {
-		system_prompt = build_teacher("cute", "python"),
-	},
-	CuteDockerTeacher = {
-		system_prompt = build_teacher("cute", "docker"),
-	},
-	CuteReactTeacher = {
-		system_prompt = build_teacher("cute", "react"),
-	},
-	CuteZshTeacher = {
-		system_prompt = build_teacher("cute", "zsh"),
-	},
-	CuteCssTeacher = {
-		system_prompt = build_teacher("cute", "css"),
-	},
-
-	-- Tsundere Teacher
-	TsundereTeacher = {
-		system_prompt = build_teacher("tsundere", ""),
-	},
-	TsundereLuaTeacher = {
-		system_prompt = build_teacher("tsundere", "lua"),
-	},
-	TsundereTypescriptTeacher = {
-		system_prompt = build_teacher("tsundere", "typescript"),
-	},
-	TsundereJavascriptTeacher = {
-		system_prompt = build_teacher("tsundere", "javascript"),
-	},
-	TsunderePythonTeacher = {
-		system_prompt = build_teacher("tsundere", "python"),
-	},
-	TsundereDockerTeacher = {
-		system_prompt = build_teacher("tsundere", "docker"),
-	},
-	TsundereReactTeacher = {
-		system_prompt = build_teacher("tsundere", "react"),
-	},
-	TsundereZshTeacher = {
-		system_prompt = build_teacher("tsundere", "zsh"),
-	},
-	TsundereCssTeacher = {
-		system_prompt = build_teacher("tsundere", "css"),
-	},
-
-	-- Documenter
-	Documenter = {
-		system_prompt = build_documenter({ "markdown" }),
-	},
-	LuaDocumenter = {
-		system_prompt = build_documenter({ "lua", "markdown" }),
-	},
-	TypescriptDocumenter = {
-		system_prompt = build_documenter({ "typescript", "markdown" }),
-	},
-	JavascriptDocumenter = {
-		system_prompt = build_documenter({ "javascript", "markdown" }),
-	},
-	PythonDocumenter = {
-		system_prompt = build_documenter({ "python", "markdown" }),
-	},
-	DockerDocumenter = {
-		system_prompt = build_documenter({ "docker", "markdown" }),
-	},
-	ReactDocumenter = {
-		system_prompt = build_documenter({ "react", "markdown" }),
-	},
-	ZshDocumenter = {
-		system_prompt = build_documenter({ "zsh", "markdown" }),
-	},
-	CssDocumenter = {
-		system_prompt = build_documenter({ "css", "markdown" }),
-	},
+---@type table<Role, Guideline>
+local guideline = {
+	assistant = { change_code = true, localization = true },
+	teacher = { localization = true },
+	reviewer = { localization = true },
+	architect = { localization = true },
+	debugger = { change_code = true, localization = true },
+	DevOps = { change_code = true, localization = true },
+	performer = { change_code = true, localization = true },
+	tester = { change_code = true, localization = true },
+	security = { change_code = true, localization = true },
+	commiter = { change_code = true, localization = true },
+	documenter = { change_code = true, localization = true },
 }
+
+---@type table<Role, QuestionFocus|nil>
+local question_focus = {
+	assistant = "selection",
+	teacher = nil,
+	reviewer = "selection",
+	architect = "selection",
+	debugger = "selection",
+	DevOps = "selection",
+	performer = "selection",
+	tester = "selection",
+	security = "selection",
+	commiter = nil,
+	documenter = "selection",
+}
+
+---@type table<Role, Format|nil>
+local format = {
+	assistant = nil,
+	teacher = nil,
+	reviewer = nil,
+	debugger = nil,
+	DevOps = nil,
+	performer = nil,
+	tester = nil,
+	security = nil,
+	commiter = nil,
+	documenter = nil,
+}
+
+---@type table<Role, Specialty[]>
+local removal_specialties = {
+	assistant = { "angular", "rust", "gitcommit", "documentation" },
+	teacher = { "angular", "rust", "gitcommit", "documentation" },
+	reviewer = { "angular", "rust", "gitcommit", "documentation" },
+	architect = { "angular", "rust", "gitcommit", "documentation" },
+	debugger = { "angular", "rust", "gitcommit", "documentation" },
+	DevOps = system_prompt.specialties,
+	performer = { "angular", "rust", "gitcommit", "documentation" },
+	tester = { "angular", "rust", "gitcommit", "documentation" },
+	security = { "angular", "rust", "gitcommit", "documentation" },
+	commiter = system_prompt.specialties,
+	documenter = { "angular", "rust", "gitcommit", "documentation" },
+}
+
+M.prompts = {}
+
+--- Creates a shallow copy of the given specialties table.
+-- This function iterates over the input table and copies each element to a new table.
+-- Useful for avoiding mutation of the original specialties list.
+--- @param specialties table<Specialty[]>: The list of specialties to copy.
+--- @return table<Specialty[]>: A new table containing the same elements as the input.
+local function copy_specialties(specialties)
+	local copied = {}
+	for i, v in ipairs(specialties) do
+		copied[i] = v
+	end
+	return copied
+end
+
+--- Removes specified specialties from a given specialties list.
+-- This function filters out any specialties present in the 'to_remove' list from the input 'specialties' table.
+-- If 'to_remove' is nil, the original specialties list is returned unchanged.
+--- @param specialties table<Specialty>: The list of specialties to filter.
+--- @param to_remove table<Specialty[]>: The list of specialties to remove from the input list.
+--- @return table<Specialty>: A new table containing only the specialties not present in 'to_remove'.
+local function remove_specialties(specialties, to_remove)
+	if not to_remove then
+		return specialties
+	end
+	local filtered = {}
+	for _, v in ipairs(specialties) do
+		local should_remove = false
+		for _, rem in ipairs(to_remove) do
+			if v == rem then
+				should_remove = true
+				break
+			end
+		end
+		if not should_remove then
+			table.insert(filtered, v)
+		end
+	end
+	return filtered
+end
+
+for _, role in ipairs(system_prompt.roles) do
+	for _, character in ipairs(system_prompt.characters) do
+		local base_specialties = copy_specialties(system_prompt.specialties)
+		local filtered_specialties = remove_specialties(base_specialties, removal_specialties[role])
+		table.insert(filtered_specialties, "")
+
+		for _, specialty in ipairs(filtered_specialties) do
+			local key = system_prompt.to_sticky(role, character, specialty)
+			M.prompts[key] = {
+				system_prompt = system_prompt.build({
+					role = role,
+					character = character,
+					guideline = guideline[role],
+					question_focus = question_focus[role],
+					specialties = specialty,
+					format = format[role],
+				}),
+			}
+		end
+	end
+end
 
 return M
