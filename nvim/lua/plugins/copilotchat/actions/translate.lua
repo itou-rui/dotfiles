@@ -80,23 +80,14 @@ end
 --- @return table
 local build_sticky = function(target, opts)
 	local file = nil
-	local reply_language = nil
-	local content_language = nil
-
-	if target == "Text" then
-		content_language = opts.user_language
-	end
 
 	if target == "Program" then
 		file = sticky.build_file_contexts(opts.selected_files)
-		reply_language = system_languages.default
-		content_language = system_languages.table.en
 	end
 
 	return sticky.build({
 		file = file,
-		reply_language = reply_language,
-		content_language = content_language,
+		reply_language = system_languages.default,
 	})
 end
 
