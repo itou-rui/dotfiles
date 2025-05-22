@@ -25,7 +25,7 @@
 
 ---@alias QuestionFocus "selection"
 
----@alias Format "explain" | "review" | "fix_bug" | "commit" | "developer_document"
+---@alias Format "explain"|"review"|"fix_bug"|"commit"|"developer_document"|"analyze_variable"|"analyze_function"
 
 ---@class BuildOptions
 ---@field role Role|nil
