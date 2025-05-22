@@ -15,18 +15,10 @@ local selection = require("plugins.copilotchat.utils.selection")
 
 local M = {}
 
---- Get the prompt string for the given target.
----@param target ExplainTarget
----@return string
-local get_prompt = function(target)
-	if target == "Code" then
-		return "Write an explanation for the selected code as paragraphs of text."
-	end
-	if target == "File" then
-		return "Write an explanation for the selected file as paragraphs of text."
-	end
-	return ""
-end
+local prompts = {
+	Code = "Please explain the selected code in detail.",
+	File = "Please explain the selected file in detail.",
+}
 
 --- Build sticky context for the given target and selected files.
 ---@param target ExplainTarget
@@ -66,7 +58,7 @@ end
 ---@param target ExplainTarget
 ---@param opts ExplainOpts
 local open_window = function(target, opts)
-	local prompt = get_prompt(target)
+	local prompt = prompts[target]
 	local stickies = build_sticky(target, opts)
 	local system_instruction = build_system_prompt(target, opts)
 

@@ -31,8 +31,8 @@ local programming_languages = {
 local M = {}
 
 local prompts = {
-	Text = "Localize the content of a given Selection with `%language`.",
-	Program = "Reproduce the complete contents of a given Selection in `%language`.",
+	Text = "Localize the content of a given Selection with `%s`.",
+	Program = "Reproduce the complete contents of a given Selection in `%s`.",
 }
 
 local note_lists = {
@@ -65,10 +65,10 @@ local build_prompt = function(target, opts)
 	end
 
 	if target == "Text" then
-		prompt = prompt:gsub("%%language", opts.user_language)
+		prompt = prompt:format(opts.user_language)
 	end
 	if target == "Program" then
-		prompt = prompt:gsub("%%language", opts.programming_language)
+		prompt = prompt:format(opts.programming_language)
 	end
 
 	return prompt .. "\n\n**Note**:\n- " .. table.concat(note_list, "\n- ")
