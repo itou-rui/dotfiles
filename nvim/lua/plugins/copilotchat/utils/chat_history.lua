@@ -81,10 +81,15 @@ local function decode_title(encoded_title)
 			end
 		end
 		if ts_num then
+			local columns = vim.o.columns
 			local weekday = os.date("%a", ts_num)
 			local day = os.date("%d", ts_num)
 			local time = os.date("%H:%M", ts_num)
-			return string.format("%s %s %s  %s", weekday, day, time, decoded:gsub("-", " "))
+			if columns <= 150 then
+				return string.format("%s", decoded:gsub("-", " "))
+			else
+				return string.format("%s %s %s  %s", weekday, day, time, decoded:gsub("-", " "))
+			end
 		end
 	else
 		return encoded_title -- Fallback to encoded if decoding fails
