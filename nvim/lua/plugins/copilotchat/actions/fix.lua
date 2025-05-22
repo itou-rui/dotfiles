@@ -22,7 +22,13 @@ Propose a clear and minimal fix, and explain its intent and behavior.
 If needed, consider related code and definitions within the selected files.
 ]],
 	Issues = [[
+Use the selected code, related files, and the following user-described issue to propose an improvement or fix.
 
+User Issue:
+
+```text
+%s
+```
 ]],
 }
 
@@ -35,7 +41,12 @@ local note_lists = {
 		"If `vim_register_0` does not contain a stack trace or relevant error, respond with: **Please copy the stack trace or error message**.",
 		"If a required file context is missing based on the stack trace or selection, respond with: `> #file:<file_path>` and include only the necessary missing context.",
 	},
-	Issues = {},
+	Issues = {
+		"Carefully read the user-described issue and focus on the selected code and related files.",
+		"Propose a minimal, clear, and easy-to-understand improvement or fix.",
+		"Explain the **intent and effect** of your suggestion, not just what it does.",
+		"If the provided context is insufficient to understand or resolve the issue, respond with: `> #file:<file_path>` and specify only the necessary missing context.",
+	},
 }
 
 local tags = {
@@ -45,7 +56,7 @@ local tags = {
 
 --- Build the prompt string for the given action.
 ---@param action ActionType
----@param input_issues string|nil
+---@param input_issues string
 ---@return string|nil
 local function build_prompt(action, input_issues)
 	local prompt = prompts[action]
@@ -53,6 +64,10 @@ local function build_prompt(action, input_issues)
 
 	if not prompt or prompt == "" then
 		return nil
+	end
+
+	if action == "Issues" then
+		prompt = prompt:format(input_issues)
 	end
 
 	if not note_list or #note_list == 0 then
@@ -67,25 +82,19 @@ end
 ---@param selected_files table|nil
 ---@return table
 local function build_sticky(action, selected_files)
-	local file = nil
-	local reply_language = nil
-	local register = nil
-
-	if action == "Bug" then
-		file = sticky.build_file_contexts(selected_files)
-		reply_language = system_languages.default
-		register = "system_clipboard"
-	end
-
-	if action == "Issues" then
-		file = sticky.build_file_contexts(selected_files)
-		reply_language = system_languages.default
-	end
+	local file = {
+		Bug = sticky.build_file_contexts(selected_files),
+		Issues = sticky.build_file_contexts(selected_files),
+	}
+	local register = {
+		Bug = "system_clipboard",
+		Issues = nil,
+	}
 
 	return sticky.build({
-		file = file,
-		reply_language = reply_language,
-		register = register,
+		file = file[action],
+		reply_language = system_languages.default,
+		register = register[action],
 	})
 end
 
@@ -94,28 +103,26 @@ end
 ---@param restored_selection RestoreSelection
 ---@return string
 local function build_system_prompt(action, restored_selection)
-	local role = "assistant"
-	local question_focus = nil
-	local format = nil
-
-	if action == "Bug" then
-		role = "debugger"
-		question_focus = "selection"
-		format = "fix_bug"
-	end
-
-	if action == "Issues" then
-		role = "assistant"
-		question_focus = "selection"
-	end
+	local role = {
+		Bug = "debugger",
+		Issues = "assistant",
+	}
+	local question_focus = {
+		Bug = "selection",
+		Issues = "selection",
+	}
+	local format = {
+		Bug = "fix_bug",
+		Issues = nil,
+	}
 
 	return system_prompt.build({
-		role = role,
+		role = role[action],
 		character = "ai",
 		guideline = { change_code = true, localization = true },
 		specialties = restored_selection and restored_selection.filetype or nil,
-		question_focus = question_focus,
-		format = format,
+		question_focus = question_focus[action],
+		format = format[action],
 	})
 end
 
@@ -134,10 +141,7 @@ local function open_window(action, opts)
 	end
 
 	local callback_selection = function(source)
-		if action == "Bug" then
-			return chat_select.visual(source) or chat_select.buffer(source)
-		end
-		return false
+		return chat_select.visual(source) or chat_select.buffer(source)
 	end
 
 	window.open_vertical(prompt, {
