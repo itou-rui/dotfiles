@@ -20,12 +20,13 @@ local prompts = {
 }
 
 local base_note_list = {
-	"Keep the `<short_summary>` under 50 characters.",
-	"Wrap the `<body>` at 72 characters per line.",
-	"Leave one blank line between the summary and the body.",
+	"<type> must follow the commitzen convention",
 	"Use the imperative mood in the summary (e.g., 'add', 'fix', 'update').",
-	"Omit `<scope>` if not applicable.",
-	"If the user is provided with `commitlint.config.js` or `.cz-config.js` registers, please follow those rules.",
+	"Keep the <short_summary> under 50 characters.",
+	"Wrap the <body> at 72 characters per line.",
+	"Leave one blank line between the summary and the body.",
+	"Omit <scope> if not applicable.",
+	"! If the user is provided with `commitlint.config.js` or `.cz-config.js` registers, please follow those rules.",
 }
 
 local note_lists = {
