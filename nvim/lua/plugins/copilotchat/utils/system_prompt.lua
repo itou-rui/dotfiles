@@ -22,6 +22,7 @@
 ---@class Guideline
 ---@field change_code boolean|nil
 ---@field localization boolean|nil
+---@field software_principles boolean|nil
 
 ---@alias QuestionFocus "selection"
 
@@ -165,6 +166,9 @@ M.build = function(opts)
 		end
 		if opts.guideline.localization then
 			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/localization.md")))
+		end
+		if opts.guideline.software_principles then
+			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/software_principles.md")))
 		end
 	end
 
