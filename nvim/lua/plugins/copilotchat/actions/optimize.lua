@@ -14,8 +14,14 @@ local selection = require("plugins.copilotchat.utils.selection")
 local M = {}
 
 local prompts = {
-	Code = "Optimize the selected code. Consider the related files for better optimization.",
-	Text = "Improve the clarity, flow, and naturalness of the selected text.",
+	Code = [[
+Optimize the selected code for efficiency and maintainability.
+Take into account related files and their interactions to achieve better optimization.
+]],
+	Text = [[
+Improve the clarity, flow, and naturalness of the selected text.
+!!! Follow the rules of **Content_Language**.
+]],
 }
 
 local note_lists = {
@@ -23,9 +29,7 @@ local note_lists = {
 		"Consider the related files for better optimization.",
 		"Ensure the code is efficient and follows best practices.",
 	},
-	Text = {
-		"Improve the clarity, flow, and naturalness of the selected text.",
-	},
+	Text = {},
 }
 
 local tag = {
