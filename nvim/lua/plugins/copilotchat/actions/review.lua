@@ -15,8 +15,16 @@ local selection = require("plugins.copilotchat.utils.selection")
 local M = {}
 
 local prompts = {
-	Code = "Review the code for the **selection**.",
-	Spelling = "Review the spelling for the **selection**.",
+	Code = [[
+Review the code for the **selection**.
+Multiple issues on one line should be separated by semicolons
+End with: "**`To clear buffer highlights, please ask a different question`**"
+]],
+	Spelling = [[
+Review the spelling for the **selection**.,
+Multiple issues on one line should be separated by semicolons
+End with: "**`To clear buffer highlights, please ask a different question`**"
+]],
 }
 
 local check_lists = {

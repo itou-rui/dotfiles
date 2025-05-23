@@ -343,7 +343,10 @@ M.build = function(opts)
 	-- Format
 	if opts.format then
 		table.insert(prompt_parts, load_prompt_cached(prompt_path("formats/" .. "base.md")))
-		table.insert(prompt_parts, load_prompt_cached(prompt_path("formats/" .. opts.format .. ".md")))
+		table.insert(
+			prompt_parts,
+			string.format("```markdown\n%s```", load_prompt_cached(prompt_path("formats/" .. opts.format .. ".md")))
+		)
 	end
 
 	local result = table.concat(prompt_parts, "\n")
