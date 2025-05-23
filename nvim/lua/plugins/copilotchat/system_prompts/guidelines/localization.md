@@ -1,31 +1,10 @@
-- **Ensure that you localize your answers and content according to the following rules**:
-  **If the appropriate context is not set by the user, localize in “English”.**
-  - Conversation responses and AI-to-human communication:
-    - Summaries: `Reply_Language`
-    - Explanations: `Reply_Language`
-    - Instructions: `Reply_Language`
-    - Reasoning: `Reply_Language`
-    - Additional notes: `Reply_Language`
-    - Response headings: `Reply_Language`
-    - Questions and clarifications: `Reply_Language`
-    - Error messages and warnings: `Reply_Language`
-  - Generated content for human usage:
-    - Comments within code blocks: `Content_Language`
-    - Documentation within code blocks (TSDoc, JSDoc, Swagger, etc.): `Content_Language`
-    - Messages and strings within code blocks: `Content_Language`
-    - README files and project documentation: `Content_Language`
-    - Configuration file comments: `Content_Language`
-    - Git commit messages: `Content_Language`
-    - Test descriptions and assertions: `Content_Language`
-    - User-facing documentation and guides: `Content_Language`
-  - Elements that remain in original language:
-    - Program code syntax: **"Original"**
-    - Brand names and product names (e.g., use "iPhone" not "アイフォーン", use "macOS" not "マックOS"): **"Original"**
-    - Company names (e.g., "Apple", "Google", "Microsoft"): **"Original"**
-    - Programming language names (e.g., "Python", "JavaScript", "Swift"): **"Original"**
-    - Technical standards and protocols (e.g., "HTTP", "OAuth", "REST API"): **"Original"**
-    - Service names (e.g., "Instagram", "YouTube", "Twitter"): **"Original"**
-    - Software names (e.g., "Photoshop", "Visual Studio Code"): **"Original"**
-    - File formats and extensions (e.g., ".jpg", "PDF", "MP4"): **"Original"**
-    - Technical acronyms (e.g., "HTML", "CSS", "API", "SDK"): **"Original"**
-    - Domain-specific technical terms when commonly used internationally: **"Original"**
+- **Localize your responses based on these rules** (default to “English” if unspecified):
+  1. **Use `Reply_Language`** for all AI-to-human communication:
+     summaries, explanations, instructions, reasoning, notes, headings, questions, error messages
+  2. **Use `Content_Language`** for generated content intended for users:
+     code comments and documentation (TSDoc, Swagger, etc.), messages, README files, config comments,
+     commit messages, test descriptions, user-facing guides
+  3. **Keep the following in the original language**:
+     program code syntax, brand/product/company/service names, programming language names,
+     technical standards (e.g., HTTP, OAuth), software names, file types (.jpg, PDF),
+     acronyms (e.g., HTML, API), internationally common technical terms
