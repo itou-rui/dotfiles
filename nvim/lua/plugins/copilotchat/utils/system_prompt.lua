@@ -33,7 +33,53 @@ local filetype = require("plugins.copilotchat.utils.filetype")
 
 local M = {}
 
-local function load_prompt(file_path)
+-- Cache storage
+local file_cache = {} -- Cache for file contents
+local build_cache = {} -- Cache for build results
+local cache_enabled = true -- Flag to enable/disable cache
+
+-- Cache for checking the last modification time of files
+local file_mtime_cache = {}
+
+-- Function to enable/disable cache
+M.enable_cache = function(enabled)
+	cache_enabled = enabled
+	if not enabled then
+		M.clear_cache()
+	end
+end
+
+-- Function to clear the cache
+M.clear_cache = function()
+	file_cache = {}
+	build_cache = {}
+	file_mtime_cache = {}
+end
+
+-- Get the last modification time of a file
+local function get_file_mtime(file_path)
+	local stat = vim.loop.fs_stat(file_path)
+	return stat and stat.mtime.sec or 0
+end
+
+-- Check if the file has been updated
+local function is_file_updated(file_path)
+	if not cache_enabled then
+		return true
+	end
+
+	local current_mtime = get_file_mtime(file_path)
+	local cached_mtime = file_mtime_cache[file_path] or 0
+
+	if current_mtime > cached_mtime then
+		file_mtime_cache[file_path] = current_mtime
+		return true
+	end
+
+	return false
+end
+
+local function load_prompt_no_cache(file_path)
 	local file = io.open(file_path, "r")
 	if not file then
 		return ""
@@ -41,6 +87,131 @@ local function load_prompt(file_path)
 	local content = file:read("*a")
 	file:close()
 	return content
+end
+
+-- File loading function with cache
+local function load_prompt_cached(file_path)
+	if not cache_enabled then
+		return load_prompt_no_cache(file_path)
+	end
+
+	if is_file_updated(file_path) then
+		file_cache[file_path] = nil
+	end
+
+	if file_cache[file_path] ~= nil then
+		return file_cache[file_path]
+	end
+
+	local content = load_prompt_no_cache(file_path)
+	file_cache[file_path] = content
+
+	return content
+end
+
+-- Generate cache key from BuildOptions
+local function generate_cache_key(opts)
+	local key_parts = {}
+
+	table.insert(key_parts, "role:" .. (opts.role or "assistant"))
+	table.insert(key_parts, "character:" .. (opts.character or "ai"))
+
+	if opts.specialties then
+		if type(opts.specialties) == "table" then
+			local specialties_sorted = {}
+			for _, specialty in ipairs(opts.specialties) do
+				table.insert(specialties_sorted, specialty)
+			end
+			table.sort(specialties_sorted)
+			table.insert(key_parts, "specialties:" .. table.concat(specialties_sorted, ","))
+		else
+			table.insert(key_parts, "specialties:" .. tostring(opts.specialties))
+		end
+	end
+
+	if opts.guideline then
+		local guideline_parts = {}
+		if opts.guideline.change_code then
+			table.insert(guideline_parts, "change_code")
+		end
+		if opts.guideline.localization then
+			table.insert(guideline_parts, "localization")
+		end
+		if opts.guideline.software_principles then
+			table.insert(guideline_parts, "software_principles")
+		end
+		if #guideline_parts > 0 then
+			table.insert(key_parts, "guideline:" .. table.concat(guideline_parts, ","))
+		end
+	end
+
+	if opts.question_focus then
+		table.insert(key_parts, "question_focus:" .. opts.question_focus)
+	end
+
+	if opts.format then
+		table.insert(key_parts, "format:" .. opts.format)
+	end
+
+	return table.concat(key_parts, "|")
+end
+
+-- Check the last modification time of the files used
+local function check_build_cache_validity(opts, cache_key)
+	if not cache_enabled then
+		return false
+	end
+
+	local config_path = vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/"
+	local files_to_check = {}
+
+	local role = opts.role or "assistant"
+	table.insert(files_to_check, config_path .. "roles/" .. role .. ".md")
+
+	local character = opts.character or "ai"
+	table.insert(files_to_check, config_path .. "characters/" .. character .. ".md")
+
+	table.insert(files_to_check, config_path .. "guidelines/base.md")
+
+	if opts.guideline then
+		if opts.guideline.change_code then
+			table.insert(files_to_check, config_path .. "guidelines/change_code.md")
+		end
+		if opts.guideline.localization then
+			table.insert(files_to_check, config_path .. "guidelines/localization.md")
+		end
+		if opts.guideline.software_principles then
+			table.insert(files_to_check, config_path .. "guidelines/software_principles.md")
+		end
+	end
+
+	if opts.question_focus then
+		table.insert(files_to_check, config_path .. "question_focus/" .. opts.question_focus .. ".md")
+	end
+
+	table.insert(files_to_check, config_path .. "specialties/base.md")
+
+	local specialties = filetype.add_related(opts.specialties)
+	if specialties and #specialties > 0 then
+		for _, specialty in ipairs(specialties) do
+			table.insert(files_to_check, config_path .. "specialties/" .. specialty .. ".md")
+		end
+	end
+
+	if opts.format then
+		table.insert(files_to_check, config_path .. "formats/base.md")
+		table.insert(files_to_check, config_path .. "formats/" .. opts.format .. ".md")
+	end
+
+	-- If any file has been updated, invalidate the cache
+	for _, file_path in ipairs(files_to_check) do
+		if is_file_updated(file_path) then
+			build_cache[cache_key] = nil
+			return false
+		end
+	end
+
+	return build_cache[cache_key] ~= nil
 end
 
 ---@type Role[]
@@ -84,8 +255,6 @@ end)()
 ---
 --- Example:
 ---   to_sticky("assistant", "ai", "python") --> "AIPythonAssistant"
----   to_sticky("user", "developer")         --> "DeveloperUser"
----
 --- @param role Role                -- The role of the entity (e.g., "assistant", "user").
 --- @param character Character      -- The character or persona name (e.g., "ai").
 --- @param specialty Specialty|nil  -- An optional specialty or sub-role (e.g., "python").
@@ -109,6 +278,14 @@ end
 ---@param opts BuildOptions
 ---@return string
 M.build = function(opts)
+	-- Generate cache key
+	local cache_key = generate_cache_key(opts)
+
+	-- Check cache validity and return if valid
+	if check_build_cache_validity(opts, cache_key) then
+		return build_cache[cache_key]
+	end
+
 	-- Helper to build prompt path
 	local config_path = vim.fn.stdpath("config") .. "/lua/plugins/copilotchat/system_prompts/"
 	local function prompt_path(subpath)
@@ -119,38 +296,38 @@ M.build = function(opts)
 
 	-- Role
 	local role = opts.role or "assistant"
-	table.insert(prompt_parts, load_prompt(prompt_path("roles/" .. role .. ".md")))
+	table.insert(prompt_parts, load_prompt_cached(prompt_path("roles/" .. role .. ".md")))
 
 	-- Character
 	local character = opts.character or "ai"
-	table.insert(prompt_parts, load_prompt(prompt_path("characters/" .. character .. ".md")))
+	table.insert(prompt_parts, load_prompt_cached(prompt_path("characters/" .. character .. ".md")))
 
 	-- Guideline
-	table.insert(prompt_parts, load_prompt(prompt_path("guidelines/base.md")))
+	table.insert(prompt_parts, load_prompt_cached(prompt_path("guidelines/base.md")))
 	if opts.guideline then
 		if opts.guideline.change_code then
-			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/change_code.md")))
+			table.insert(prompt_parts, load_prompt_cached(prompt_path("guidelines/change_code.md")))
 		end
 		if opts.guideline.localization then
-			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/localization.md")))
+			table.insert(prompt_parts, load_prompt_cached(prompt_path("guidelines/localization.md")))
 		end
 		if opts.guideline.software_principles then
-			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/software_principles.md")))
+			table.insert(prompt_parts, load_prompt_cached(prompt_path("guidelines/software_principles.md")))
 		end
 	end
 
 	-- Question Focus
 	if opts.question_focus then
-		table.insert(prompt_parts, load_prompt(prompt_path("question_focus/" .. opts.question_focus .. ".md")))
+		table.insert(prompt_parts, load_prompt_cached(prompt_path("question_focus/" .. opts.question_focus .. ".md")))
 	end
 
 	-- Specialties
-	table.insert(prompt_parts, load_prompt(prompt_path("specialties/base.md")))
+	table.insert(prompt_parts, load_prompt_cached(prompt_path("specialties/base.md")))
 	local specialties = filetype.add_related(opts.specialties)
 	if specialties and #specialties > 0 then
 		local failed_languages = {}
 		for _, specialty in ipairs(specialties) do
-			local specialty_prompt = load_prompt(prompt_path("specialties/" .. specialty .. ".md"))
+			local specialty_prompt = load_prompt_cached(prompt_path("specialties/" .. specialty .. ".md"))
 			if specialty_prompt ~= "" then
 				table.insert(prompt_parts, specialty_prompt)
 			else
@@ -165,11 +342,27 @@ M.build = function(opts)
 
 	-- Format
 	if opts.format then
-		table.insert(prompt_parts, load_prompt(prompt_path("formats/" .. "base.md")))
-		table.insert(prompt_parts, load_prompt(prompt_path("formats/" .. opts.format .. ".md")))
+		table.insert(prompt_parts, load_prompt_cached(prompt_path("formats/" .. "base.md")))
+		table.insert(prompt_parts, load_prompt_cached(prompt_path("formats/" .. opts.format .. ".md")))
 	end
 
-	return table.concat(prompt_parts, "\n")
+	local result = table.concat(prompt_parts, "\n")
+
+	-- Save the result to cache
+	if cache_enabled then
+		build_cache[cache_key] = result
+	end
+
+	return result
+end
+
+-- For debugging: get cache statistics
+M.get_cache_stats = function()
+	return {
+		file_cache_size = vim.tbl_count(file_cache),
+		build_cache_size = vim.tbl_count(build_cache),
+		cache_enabled = cache_enabled,
+	}
 end
 
 return M
