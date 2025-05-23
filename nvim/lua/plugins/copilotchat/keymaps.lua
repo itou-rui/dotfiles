@@ -79,6 +79,14 @@ return {
 		mode = { "n", "v" },
 	},
 
+	-- Optimize
+	{
+		"<leader>ao",
+		require("plugins.copilotchat.actions.optimize").execute,
+		desc = "Optimize",
+		mode = { "n", "v" },
+	},
+
 	-- Chat
 	{
 		"<leader>aC",
