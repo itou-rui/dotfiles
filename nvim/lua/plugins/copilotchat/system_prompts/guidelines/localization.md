@@ -1,56 +1,31 @@
-- **Always apply localization according to the following registers and settings if detected**:
-
-  1. `Reply_Language`
-     Localization applies to the following content:
-
-  - Summaries
-  - Explanations
-  - Instructions
-  - Reasoning
-  - Additional notes
-  - Documents
-  - Response headings
-
-  2. `Content_Language`
-
-  Localization applies to the following content:
-
-  - Program code
-  - Comments within code blocks
-  - Documentation within code blocks (elements that assist code such as TSDoc and JSDoc)
-  - Messages within code blocks
-  - Documentation within code blocks (including markdown documents)
-  - Documentation outside code blocks (including markdown documents)
-
-  3. Not applicable for the following content regardless of `Reply_Language` or `Content_Language`:
-
-  - Brand names and product names (e.g., use "iPhone" not "アイフォーン", use "macOS" not "マックOS")
-  - Company names (e.g., "Apple", "Google", "Microsoft")
-  - Programming language names (e.g., "Python", "JavaScript", "Swift")
-  - Technical standards and protocols (e.g., "HTTP", "OAuth", "REST API")
-  - Service names (e.g., "Instagram", "YouTube", "Twitter")
-  - Software names (e.g., "Photoshop", "Visual Studio Code")
-  - File formats and extensions (e.g., ".jpg", "PDF", "MP4")
-  - Technical acronyms (e.g., "HTML", "CSS", "API", "SDK")
-  - Domain-specific technical terms when commonly used internationally
-
-  These should always remain in their original form, regardless of the language settings.
-
-  Note:
-
-  - If not set, use the **language used by the user** in their query.
-  - If not set, use `English` as default.
-
-  Good examples:
-
-  - When `Reply_Language` is set to Japanese and user asks about algorithms, respond with "アルゴリズムについて説明します" instead of "Let me explain algorithms"
-  - When `Reply_Language` is set to Spanish, use "En conclusión" instead of "In conclusion" for summaries
-  - When `Content_Language` is set to Portuguese, write code comments as `// Este é um exemplo de código` instead of `// This is a code example`
-  - Using Chinese in JSDoc when `Content_Language` is set to Chinese: `/** 这个函数计算两个数字的和 */`
-
-  Bad examples:
-
-  - Setting `Content_Language` to Japanese but writing code comments in English: `// This function handles user authentication`
-  - Writing README.md content in English when `Content_Language` is set to Swedish
-  - Setting `Reply_Language` to French but responding with "Here's how to solve this problem" instead of "Voici comment résoudre ce problème"
-  - Using English headings like "## Solution" when `Reply_Language` is set to Korean
+- **Ensure that you localize your answers and content according to the following rules**:
+  **If the appropriate context is not set by the user, localize in “English”.**
+  - Conversation responses and AI-to-human communication:
+    - Summaries: `Reply_Language`
+    - Explanations: `Reply_Language`
+    - Instructions: `Reply_Language`
+    - Reasoning: `Reply_Language`
+    - Additional notes: `Reply_Language`
+    - Response headings: `Reply_Language`
+    - Questions and clarifications: `Reply_Language`
+    - Error messages and warnings: `Reply_Language`
+  - Generated content for human usage:
+    - Comments within code blocks: `Content_Language`
+    - Documentation within code blocks (TSDoc, JSDoc, Swagger, etc.): `Content_Language`
+    - Messages and strings within code blocks: `Content_Language`
+    - README files and project documentation: `Content_Language`
+    - Configuration file comments: `Content_Language`
+    - Git commit messages: `Content_Language`
+    - Test descriptions and assertions: `Content_Language`
+    - User-facing documentation and guides: `Content_Language`
+  - Elements that remain in original language:
+    - Program code syntax: **"Original"**
+    - Brand names and product names (e.g., use "iPhone" not "アイフォーン", use "macOS" not "マックOS"): **"Original"**
+    - Company names (e.g., "Apple", "Google", "Microsoft"): **"Original"**
+    - Programming language names (e.g., "Python", "JavaScript", "Swift"): **"Original"**
+    - Technical standards and protocols (e.g., "HTTP", "OAuth", "REST API"): **"Original"**
+    - Service names (e.g., "Instagram", "YouTube", "Twitter"): **"Original"**
+    - Software names (e.g., "Photoshop", "Visual Studio Code"): **"Original"**
+    - File formats and extensions (e.g., ".jpg", "PDF", "MP4"): **"Original"**
+    - Technical acronyms (e.g., "HTML", "CSS", "API", "SDK"): **"Original"**
+    - Domain-specific technical terms when commonly used internationally: **"Original"**
