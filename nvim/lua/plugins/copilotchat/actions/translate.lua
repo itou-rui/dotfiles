@@ -96,6 +96,11 @@ end
 --- @param opts TranslateOpts
 --- @return string
 local build_system_prompt = function(target, opts)
+	local role = { Text = "documenter", Program = "assistant" }
+	local guideline = {
+		Text = { change_code = true, localization = true },
+		Program = { change_code = true, localization = true, software_principles = true },
+	}
 	local specialties = {
 		Text = nil,
 		Program = opts.restored_selection and { opts.restored_selection.filetype, opts.programming_language }
@@ -103,9 +108,9 @@ local build_system_prompt = function(target, opts)
 	}
 
 	return system_prompt.build({
-		role = "assistant",
+		role = role[target],
 		character = "ai",
-		guideline = { localization = true },
+		guideline = guideline[target],
 		specialties = specialties[target],
 		question_focus = "selection",
 	})
