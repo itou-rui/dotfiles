@@ -19,12 +19,53 @@ local prompts = {
 	["Squash Merge"] = 'Write a commit message for a "Squash Merge", summarizing all combined changes.',
 }
 
+local base_note_list = {
+	"Keep the `<short_summary>` under 50 characters.",
+	"Wrap the `<body>` at 72 characters per line.",
+	"Leave one blank line between the summary and the body.",
+	"Use the imperative mood in the summary (e.g., 'add', 'fix', 'update').",
+	"Omit `<scope>` if not applicable.",
+	"If the user is provided with `commitlint.config.js` or `.cz-config.js` registers, please follow those rules.",
+}
+
+local note_lists = {
+	Basic = base_note_list,
+	WIP = base_note_list,
+	Merge = base_note_list,
+	["Squash Merge"] = vim.tbl_extend("force", base_note_list, {
+		"Include all commits in the branch inside `-----` in <internal_commits>.",
+	}),
+}
+
+local format = {
+	Basic = "commit_basic",
+	WIP = "commit_basic",
+	Merge = "commit_merge",
+	["Squash Merge"] = "commit_squash",
+}
+
 local fallback_chat_title = {
 	Basic = "Request to create basic commitments.",
 	WIP = "Request to create WIP commitments.",
 	Merge = "Request to Create Merge Commit.",
 	["Squash Merge"] = "Request to Create Squash Merge Commit.",
 }
+
+--- @param commit_type string
+local build_prompt = function(commit_type)
+	local prompt = prompts[commit_type]
+	local note_list = note_lists[commit_type]
+
+	if not prompt or prompt == "" then
+		return nil
+	end
+
+	if not note_list or #note_list == 0 then
+		return prompt
+	end
+
+	return prompt .. "\n\n**Note**:\n- " .. table.concat(note_list, "\n- ")
+end
 
 --- Build sticky context for the given commit type, base branch, and commit language.
 ---@param commit_type CommitType
@@ -57,14 +98,15 @@ local function build_sticky(commit_type, opts)
 end
 
 --- Build the system prompt for commit actions.
+---@param commit_type CommitType
 ---@return string
-local build_system_prompt = function()
+local build_system_prompt = function(commit_type)
 	return system_prompt.build({
 		role = "assistant",
 		character = "ai",
 		guideline = { change_code = true, localization = true },
 		specialties = "gitcommit",
-		format = "commit",
+		format = format[commit_type],
 	})
 end
 
@@ -72,7 +114,10 @@ end
 ---@param commit_type CommitType
 ---@param opts CommitOpts
 local function open_window(commit_type, opts)
-	local prompt = prompts[commit_type]
+	local prompt = build_prompt(commit_type)
+	if not prompt then
+		return
+	end
 
 	local save_chat = function(response)
 		chat_history.save(response, {
@@ -82,7 +127,7 @@ local function open_window(commit_type, opts)
 	end
 
 	window.open_float(prompt, {
-		system_prompt = build_system_prompt(),
+		system_prompt = build_system_prompt(commit_type),
 		sticky = build_sticky(commit_type, opts),
 		selection = false,
 		callback = save_chat,
