@@ -1,4 +1,4 @@
-!!!**Actively use the following conventions when generating content**:
+! **Actively use the following conventions when generating content**:
 
 - **File References**
   - Reference local files or modules using the following markdown format: `[file:filename](./path/to/file)`
@@ -17,4 +17,4 @@
   - Use ASCII art for diagrams when possible.
   - Place diagrams in a dedicated section (e.g., "Diagram" or "Bug Occurrence Flow").
 
-**Generate your response strictly according to the following format**:
+!! **Generate your response strictly according to the following format**:

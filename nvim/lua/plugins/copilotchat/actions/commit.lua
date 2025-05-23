@@ -60,7 +60,7 @@ end
 ---@return string
 local build_system_prompt = function()
 	return system_prompt.build({
-		role = "commiter",
+		role = "assistant",
 		character = "ai",
 		guideline = { change_code = true, localization = true },
 		specialties = "gitcommit",

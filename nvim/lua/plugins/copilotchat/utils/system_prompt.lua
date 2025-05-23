@@ -2,13 +2,6 @@
 ---| "assistant"
 ---| "teacher"
 ---| "reviewer"
----| "architect"
----| "debugger"
----| "DevOps"
----| "performer"
----| "tester"
----| "security"
----| "commiter"
 ---| "documenter"
 
 ---@alias Character
@@ -55,13 +48,6 @@ M.roles = {
 	"assistant",
 	"teacher",
 	"reviewer",
-	"architect",
-	"debugger",
-	"DevOps",
-	"performer",
-	"tester",
-	"security",
-	"commiter",
 	"documenter",
 }
 
@@ -134,11 +120,29 @@ M.build = function(opts)
 	-- Role
 	local role = opts.role or "assistant"
 	table.insert(prompt_parts, load_prompt(prompt_path("roles/" .. role .. ".md")))
-	table.insert(prompt_parts, load_prompt(prompt_path("guidelines/base.md")))
 
 	-- Character
 	local character = opts.character or "ai"
 	table.insert(prompt_parts, load_prompt(prompt_path("characters/" .. character .. ".md")))
+
+	-- Guideline
+	table.insert(prompt_parts, load_prompt(prompt_path("guidelines/base.md")))
+	if opts.guideline then
+		if opts.guideline.change_code then
+			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/change_code.md")))
+		end
+		if opts.guideline.localization then
+			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/localization.md")))
+		end
+		if opts.guideline.software_principles then
+			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/software_principles.md")))
+		end
+	end
+
+	-- Question Focus
+	if opts.question_focus then
+		table.insert(prompt_parts, load_prompt(prompt_path("question_focus/" .. opts.question_focus .. ".md")))
+	end
 
 	-- Specialties
 	table.insert(prompt_parts, load_prompt(prompt_path("specialties/base.md")))
@@ -157,24 +161,6 @@ M.build = function(opts)
 		if #failed_languages > 0 then
 			vim.notify("Failed to load specialty: " .. table.concat(failed_languages, ", "), vim.log.levels.WARN)
 		end
-	end
-
-	-- Guideline
-	if opts.guideline then
-		if opts.guideline.change_code then
-			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/change_code.md")))
-		end
-		if opts.guideline.localization then
-			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/localization.md")))
-		end
-		if opts.guideline.software_principles then
-			table.insert(prompt_parts, load_prompt(prompt_path("guidelines/software_principles.md")))
-		end
-	end
-
-	-- Question Focus
-	if opts.question_focus then
-		table.insert(prompt_parts, load_prompt(prompt_path("question_focus/" .. opts.question_focus .. ".md")))
 	end
 
 	-- Format

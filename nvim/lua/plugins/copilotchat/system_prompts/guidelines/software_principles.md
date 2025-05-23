@@ -1,4 +1,4 @@
-- **You must meet user requirements keeping in mind the following software principles**:
+- **Software principles that need to be kept in mind**:
   1. DRY (Don't Repeat Yourself)
   2. SOLID (SRP、OCP、LSP、ISP、DIP)
   3. KISS (Keep It Simple, Stupid)
