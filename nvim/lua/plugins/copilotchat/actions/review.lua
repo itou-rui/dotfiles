@@ -65,7 +65,7 @@ end
 ---@return string
 local build_system_prompt = function(target, restored_selection)
 	return system_prompt.build({
-		role = "assistant",
+		role = "reviewer",
 		character = "ai",
 		guideline = { localization = true },
 		specialties = restored_selection and restored_selection.filetype or nil,

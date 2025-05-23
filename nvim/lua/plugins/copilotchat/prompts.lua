@@ -4,16 +4,10 @@ local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 
 ---@type table<Role, Guideline>
 local guideline = {
-	assistant = { change_code = true, localization = true },
+	assistant = { change_code = true, localization = true, software_principles = true },
 	teacher = { localization = true },
-	reviewer = { localization = true },
-	architect = { localization = true },
+	reviewer = { localization = true, software_principles = true },
 	debugger = { change_code = true, localization = true },
-	DevOps = { change_code = true, localization = true },
-	performer = { change_code = true, localization = true },
-	tester = { change_code = true, localization = true },
-	security = { change_code = true, localization = true },
-	commiter = { change_code = true, localization = true },
 	documenter = { change_code = true, localization = true },
 }
 
@@ -22,13 +16,7 @@ local question_focus = {
 	assistant = "selection",
 	teacher = nil,
 	reviewer = "selection",
-	architect = "selection",
 	debugger = "selection",
-	DevOps = "selection",
-	performer = "selection",
-	tester = "selection",
-	security = "selection",
-	commiter = nil,
 	documenter = "selection",
 }
 
@@ -38,11 +26,6 @@ local format = {
 	teacher = nil,
 	reviewer = nil,
 	debugger = nil,
-	DevOps = nil,
-	performer = nil,
-	tester = nil,
-	security = nil,
-	commiter = nil,
 	documenter = nil,
 }
 
@@ -51,13 +34,7 @@ local removal_specialties = {
 	assistant = { "angular", "rust", "gitcommit", "documentation" },
 	teacher = { "angular", "rust", "gitcommit", "documentation" },
 	reviewer = { "angular", "rust", "gitcommit", "documentation" },
-	architect = { "angular", "rust", "gitcommit", "documentation" },
 	debugger = { "angular", "rust", "gitcommit", "documentation" },
-	DevOps = system_prompt.specialties,
-	performer = { "angular", "rust", "gitcommit", "documentation" },
-	tester = { "angular", "rust", "gitcommit", "documentation" },
-	security = { "angular", "rust", "gitcommit", "documentation" },
-	commiter = system_prompt.specialties,
 	documenter = { "angular", "rust", "gitcommit", "documentation" },
 }
 
