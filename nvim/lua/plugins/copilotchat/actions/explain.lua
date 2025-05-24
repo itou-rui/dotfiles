@@ -16,8 +16,44 @@ local selection = require("plugins.copilotchat.utils.selection")
 local M = {}
 
 local prompts = {
-	Code = "Please explain the selected code in detail.",
-	File = "Please explain the selected file in detail.",
+	Code = [[
+Please explain the selected code based on the following points:
+
+- **Purpose and Role**: What is this code intended to accomplish?
+- **Process Flow**: Step-by-step execution order and explanation of each stage
+- **Dependencies**: Description of external functions, libraries, or modules used
+- **Data Flow**: How data is transformed from input to output
+- **Key Implementation Details**: Algorithms, design patterns, or special processing used
+- **Error Handling**: How exceptions and edge cases are managed
+
+**Important**
+
+- Make use of information from the provided context files
+- Maintain technical accuracy and base explanations on facts, not assumptions
+- Add appropriate explanations for technical terms so that beginners can understand
+- Do not mention code quality or possible improvements (focus only on explanation)
+]],
+
+	File = [[
+Please explain the entire selected file based on the following points:
+
+- **Purpose and Responsibility**: The role this file plays in the overall system
+- **Architectural Position**: Its place in the layer structure or design pattern
+- **Main Components**: Overview of included classes, functions, or interfaces
+- **External Dependencies**: Imported modules or libraries and their purposes
+- **Public API**: Main functions or classes used by other files
+- **Internal Implementation**: Helper functions or internal logic used only within this file
+- **Data Structures**: Defined types, interfaces, or schemas
+- **Settings and Constants**: Explanation of important configuration values or constants
+
+**Important**
+
+- Make use of information from the provided context files
+- Explain the overall structure of the file from a high-level perspective
+- Focus on relationships and the big picture rather than detailed implementation of each component
+- The goal is to help new developers quickly understand the file's role
+- Include information useful for code review and maintenance
+]],
 }
 
 --- Build sticky context for the given target and selected files.
@@ -50,7 +86,6 @@ local build_system_prompt = function(target, opts)
 		guideline = { localization = true },
 		specialties = opts and opts.restored_selection and opts.restored_selection.filetype or nil,
 		question_focus = question_focus,
-		format = "explain",
 	})
 end
 
