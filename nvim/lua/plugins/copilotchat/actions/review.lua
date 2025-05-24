@@ -1,7 +1,3 @@
----@alias ReviewTarget "Code"|"Spelling"
----@class ReviewOpts
----@field restored_selection RestoreSelection
-
 local chat_select = require("CopilotChat.select")
 local copilot_chat_ns = vim.api.nvim_create_namespace("copilot-chat-diagnostics")
 local diagnostics_parser = require("plugins.copilotchat.utils.diagnostics")
@@ -12,60 +8,53 @@ local window = require("plugins.copilotchat.utils.window")
 local sticky = require("plugins.copilotchat.utils.sticky")
 local selection = require("plugins.copilotchat.utils.selection")
 
+---@alias ReviewTarget "Code"|"Spelling"
+---@class ReviewOpts
+---@field restored_selection RestoreSelection
+
 local M = {}
 
 local prompts = {
 	Code = [[
-Review the code for the **selection**.
-Multiple issues on one line should be separated by semicolons
-End with: "**`To clear buffer highlights, please ask a different question`**"
+Please review the selected code based on the following criteria:
+
+- Variable Names:
+  - Are the names clear and descriptive?
+  - Do they follow conventional naming practices?
+- Comments:
+  - Are there any missing comments?
+  - Are there any redundant comments?
+  - Do the comments accurately reflect the code's behavior?
+- Code:
+  - Are complex expressions simplified where possible?
+  - Is there any deep nesting or overly complex control flow?
+  - Is a consistent style and formatting maintained?
+  - Is there any code duplication or redundancy?
+  - Are there any performance issues?
+  - Is error handling sufficient?
+  - Are there any security concerns?
+  - Does the code violate any software principles?
+
+**Important**:
+
+- If a single line contains multiple issues, separate them with semicolons.
+- End your review with "**`To clear buffer highlights, please ask a different question`**".
 ]],
+
 	Spelling = [[
-Review the spelling for the **selection**.,
-Multiple issues on one line should be separated by semicolons
-End with: "**`To clear buffer highlights, please ask a different question`**"
+Please review the natural language content in the selected range based on the following criteria:
+
+- Check for any spelling mistakes or typographical errors
+- Ensure correct grammar is used
+- Confirm that appropriate expressions are used
+
+**Important**:
+
+- Do not comment on the language used (e.g., do not suggest translating to another language or that the content should be written in a different language)
+- If a single line contains multiple issues, separate them with semicolons.
+- End your review with "**`To clear buffer highlights, please ask a different question`**".
 ]],
 }
-
-local check_lists = {
-	Code = {
-		"Unclear or non-conventional naming",
-		"Comment quality (missing or unnecessary)",
-		"Complex expressions needing simplification",
-		"Deep nesting or complex control flow",
-		"Inconsistent style or formatting",
-		"Code duplication or redundancy",
-		"Potential performance issues",
-		"Error handling gaps",
-		"Security concerns",
-		"Breaking of SOLID principles",
-	},
-	Spelling = {
-		"Spelling mistakes",
-		"Grammatical errors",
-		"Awkward or unclear phrasing",
-		"Inconsistent terminology or style",
-		"Tone or language that may reduce clarity or professionalism",
-	},
-}
-
---- Build the prompt string for the given review action.
----@param target ReviewTarget
----@return string|nil
-local build_prompt = function(target)
-	local prompt = prompts[target]
-	local check_list = check_lists[target]
-
-	if not prompt or prompt == "" then
-		return nil
-	end
-
-	if not check_list or #check_list == 0 then
-		return prompt
-	end
-
-	return prompt .. "\n\n**Checklist**:\n- " .. table.concat(check_list, "\n- ")
-end
 
 --- Build the system prompt for the given review action and selection.
 ---@param target ReviewTarget
@@ -75,7 +64,7 @@ local build_system_prompt = function(target, restored_selection)
 	return system_prompt.build({
 		role = "reviewer",
 		character = "ai",
-		guideline = { localization = true },
+		guideline = { localization = true, software_principles = true },
 		specialties = restored_selection and restored_selection.filetype or nil,
 		format = "review",
 	})
@@ -93,11 +82,6 @@ end
 ---@param target ReviewTarget
 ---@param restored_selection RestoreSelection
 local function open_window(target, restored_selection)
-	local prompt = build_prompt(target)
-	if not prompt then
-		return
-	end
-
 	local callback_selection = function(source)
 		if target == "Code" or target == "Spelling" then
 			return chat_select.visual(source) or chat_select.buffer(source)
@@ -110,12 +94,12 @@ local function open_window(target, restored_selection)
 		vim.diagnostic.set(copilot_chat_ns, source.bufnr, diagnostics)
 	end
 
-	window.open_vertical(prompt, {
+	window.open_vertical(prompts[target], {
 		system_prompt = build_system_prompt(target, restored_selection),
 		sticky = build_sticky(),
 		selection = callback_selection,
 		callback = function(response, source)
-			chat_history.save(response, { used_prompt = prompt, tag = "Review" .. target })
+			chat_history.save(response, { used_prompt = prompts[target], tag = "Review" })
 			set_diagnostic(response, source)
 			return response
 		end,
