@@ -19,7 +19,7 @@
 
 ---@alias QuestionFocus "selection"
 
----@alias Format "explain"|"review"|"fix_bug"|"commit"|"developer_document"|"analyze_variable"|"analyze_function"|"commit_basic"|"commit_merge"|"commit_squash"
+---@alias Format "explain"|"review"|"commit"|"developer_document"|"analyze_variable"|"analyze_function"|"commit_basic"|"commit_merge"|"commit_squash"
 
 ---@class BuildOptions
 ---@field role Role|nil
