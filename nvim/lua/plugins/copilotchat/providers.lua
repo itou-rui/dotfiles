@@ -8,12 +8,12 @@ M.providers = {
 		prepare_input = function(inputs, opts)
 			local is_o1 = vim.startswith(opts.model.id, "o1")
 
-			-- Insert a system message "/no_think" at the beginning of the inputs list.
-			-- This message is used to instruct the CopilotChat provider to suppress internal reasoning or thinking steps.
-			table.insert(inputs, 1, {
-				role = "system",
-				content = "/no_think",
-			})
+			for i = #inputs, 1, -1 do
+				if inputs[i].role == "user" then
+					inputs[i].content = '"/no_think"' .. "\n\n" .. inputs[i].content
+					break
+				end
+			end
 
 			inputs = vim.tbl_map(function(input)
 				if is_o1 then
@@ -70,7 +70,7 @@ M.providers = {
 
 			-- Remove <think> tags and leading whitespace from the content string, if present.
 			if content then
-				content = content:gsub("<think>", ""):gsub("</think>", ""):gsub("^%s+", "")
+				content = content:gsub("<think>", ""):gsub("</think>", "")
 			end
 
 			local usage = message.usage and message.usage.total_tokens or output.usage and output.usage.total_tokens

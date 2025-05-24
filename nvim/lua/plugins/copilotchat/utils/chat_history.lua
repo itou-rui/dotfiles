@@ -314,7 +314,7 @@ M.save = function(response, opts)
 
 		-- Use AI to generate prompt title based on first AI response to user question
 		chat.ask(vim.trim(title_prompt:format(system_languages.default, opts.used_prompt, response)), {
-			sticky = { "$o1" },
+			model = "gpt-4.1",
 			callback = function(gen_response)
 				-- Generate timestamp in format YYYYMMDD_HHMMSS
 				local timestamp = os.date("%Y%m%d_%H%M%S")
