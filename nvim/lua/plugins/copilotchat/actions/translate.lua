@@ -31,48 +31,29 @@ local programming_languages = {
 local M = {}
 
 local prompts = {
-	Text = "Localize the content of a given Selection with `%s`.",
-	Program = "Reproduce the complete contents of a given Selection in `%s`.",
+	Text = [[
+Please localize the natural language content in the selected range to `%s`, paying attention to the following:
+
+**Important**:
+
+- Do not reflect any incorrect context, spelling mistakes, or typographical errors from the original language
+- Do not change the original meaning of the content
+- Use native expressions appropriate for the target locale (`%s`)
+]],
+
+	Program = [[
+Please fully reproduce the selected functionality in "%s", paying attention to the following:
+
+**Important**:
+
+- Do not change the structure of arguments or return values
+- Do not change variable names or function names
+- Ensure the behavior is exactly the same
+- Fully reproduce all comments and documentation
+- Fully reproduce any dependent features or dependencies (if a library is incompatible, suggest an alternative)
+- If you are unable to fully reproduce the functionality, explain the reason and suggest an alternative to complete this task.
+]],
 }
-
-local note_lists = {
-	Text = {
-		"Please translate considering the context and use native expressions in the target language, not just a literal translation.",
-		"Do not change the original meaning of the text.",
-	},
-	Program = {
-		"Preserve the internal structure between the source and translated code (e.g., variable names, arguments).",
-		"Ensure the translated code behaves identically to the original.",
-		"Reproduce any features or dependencies present in the original code.",
-		"Retain all comments and documentation from the original code in the translation.",
-	},
-}
-
---- Get the prompt string for the given target and language.
----@param target TranslateTarget
----@param opts TranslateOpts
----@return string|nil
-local build_prompt = function(target, opts)
-	local prompt = prompts[target]
-	local note_list = note_lists[target]
-
-	if not prompt or prompt == "" then
-		return nil
-	end
-
-	if not note_list or #note_list == 0 then
-		return prompt
-	end
-
-	if target == "Text" then
-		prompt = prompt:format(opts.user_language)
-	end
-	if target == "Program" then
-		prompt = prompt:format(opts.programming_language)
-	end
-
-	return prompt .. "\n\n**Note**:\n- " .. table.concat(note_list, "\n- ")
-end
 
 --- Build sticky context for the given target, language, and selected files.
 --- @param target TranslateTarget
@@ -120,11 +101,8 @@ end
 --- @param target TranslateTarget
 --- @param opts TranslateOpts
 local open_window = function(target, opts)
-	local prompt = build_prompt(target, opts)
-	if not prompt then
-		return
-	end
-
+	local lang = target == "Text" and opts.user_language or opts.programming_language
+	local prompt = vim.trim(prompts[target]:format(lang, lang))
 	local stickies = build_sticky(target, opts)
 	local system_instruction = build_system_prompt(target, opts)
 
