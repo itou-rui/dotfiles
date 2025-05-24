@@ -32,11 +32,6 @@ local note_lists = {
 	Text = {},
 }
 
-local tag = {
-	Code = "OptimizeCode",
-	Text = "OptimizeText",
-}
-
 --- Builds the prompt string for the given optimization target.
 --- Appends relevant notes if available.
 ---@param target OptimizeTarget Target type ("Code" or "Text").
@@ -114,7 +109,7 @@ local function open_window(target, opts)
 			return chat_select.visual(source) or chat_select.buffer(source)
 		end,
 		callback = function(response)
-			chat_history.save(response, { used_prompt = prompt, tag = tag[target] })
+			chat_history.save(response, { used_prompt = prompt, tag = "Optimize" })
 			return response
 		end,
 	})

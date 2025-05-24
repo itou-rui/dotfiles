@@ -49,11 +49,6 @@ local note_lists = {
 	},
 }
 
-local tags = {
-	Bug = "FixBug",
-	Issues = "FixIssues",
-}
-
 --- Build the prompt string for the given action.
 ---@param action ActionType
 ---@param input_issues string
@@ -104,7 +99,7 @@ end
 ---@return string
 local function build_system_prompt(action, restored_selection)
 	local role = {
-		Bug = "debugger",
+		Bug = "assistant",
 		Issues = "assistant",
 	}
 	local question_focus = {
@@ -136,7 +131,7 @@ local function open_window(action, opts)
 	end
 
 	local save_chat = function(response)
-		chat_history.save(response, { used_prompt = prompt, tag = tags[action] })
+		chat_history.save(response, { used_prompt = prompt, tag = "Review" })
 		return response
 	end
 
