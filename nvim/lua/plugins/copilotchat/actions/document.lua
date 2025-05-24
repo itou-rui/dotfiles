@@ -46,13 +46,6 @@ local note_lists = {
 	},
 }
 
-local tags = {
-	["Comment"] = "Comment",
-	["Code Document"] = "CodeDoc",
-	["API Document"] = "APIDoc",
-	["Developer Document"] = "DevDoc",
-}
-
 --- Build the prompt string for the given document action.
 ---@param action DocumentAction
 ---@return string|nil
@@ -114,7 +107,7 @@ local open_window = function(action, opts)
 	end
 
 	local save_chat = function(response)
-		chat_history.save(response, { used_prompt = prompt, tag = tags[action] })
+		chat_history.save(response, { used_prompt = prompt, tag = "Doc" })
 		return response
 	end
 

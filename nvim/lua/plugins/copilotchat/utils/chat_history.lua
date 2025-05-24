@@ -1,4 +1,4 @@
----@alias ChatHistoryTag "NewChat"|"Commit"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"FixBug"|"Translate"|"Write"|"ReviewCode"|"ReviewSpelling"|"Comment"|"CodeDoc"|"APIDoc"|"DevDoc"|"FixIssues"|"OptimizeCode"|"OptimizeText"
+---@alias ChatHistoryTag "NewChat"|"Commit"|"Instruction"|"Generate"|"Explain"|"Review"|"Analyze"|"Refactor"|"Fix"|"Translate"|"Review"|"Doc"|"Fix"|"Optimize"
 
 ---@class ChatHistoryOpts
 ---@field used_prompt nil|string
