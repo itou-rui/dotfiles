@@ -17,60 +17,19 @@ local M = {}
 
 local prompts = {
 	Bug = [[
-Use the stack trace from `vim_register_0` and the selected code to identify the root cause of the bug.
-Propose a clear and minimal fix, and explain its intent and behavior.
-If needed, consider related code and definitions within the selected files.
-]],
-	Issues = [[
-Use the selected code, related files, and the following user-described issue to propose an improvement or fix.
+Please fix bugs in the selected code range, paying attention to the following points:
 
-User Issue:
+- Use the stack trace from `vim_register_0` as the primary clue.
+- If the selected range does not provide enough information, note that "the user has not identified the cause," and in this case, use the provided information to the fullest extent to identify the cause.
+- Since the provided file is likely related to the cause of the bug, also consider its definitions and references.
+- Keep the scope of the fix to a minimum.
 
-```text
-%s
-```
+**Important**:
+
+- If `vim_register_0` is not provided, respond only with `"**Copy the stack trace to the clipboard**"` and end this task.
+- After correcting the bug, explain its location, root cause, and the reason for the correction. If necessary, conclude with an ASCII art diagram illustrating the bug's flow.
 ]],
 }
-
-local note_lists = {
-	Bug = {
-		"Always use the stack trace from `vim_register_0` as the primary clue.",
-		"Focus on the selected code, but also consider related functions, calls, or definitions from the same files.",
-		"Your fix should be minimal, clear, and easy to understand.",
-		"Explain the **intent and effect** of your fix, not just what it does.",
-		"If `vim_register_0` does not contain a stack trace or relevant error, respond with: **Please copy the stack trace or error message**.",
-		"If a required file context is missing based on the stack trace or selection, respond with: `> #file:<file_path>` and include only the necessary missing context.",
-	},
-	Issues = {
-		"Carefully read the user-described issue and focus on the selected code and related files.",
-		"Propose a minimal, clear, and easy-to-understand improvement or fix.",
-		"Explain the **intent and effect** of your suggestion, not just what it does.",
-		"If the provided context is insufficient to understand or resolve the issue, respond with: `> #file:<file_path>` and specify only the necessary missing context.",
-	},
-}
-
---- Build the prompt string for the given action.
----@param action ActionType
----@param input_issues string
----@return string|nil
-local function build_prompt(action, input_issues)
-	local prompt = prompts[action]
-	local note_list = note_lists[action]
-
-	if not prompt or prompt == "" then
-		return nil
-	end
-
-	if action == "Issues" then
-		prompt = prompt:format(input_issues)
-	end
-
-	if not note_list or #note_list == 0 then
-		return prompt
-	end
-
-	return prompt .. "\n\n**Note**:\n- " .. table.concat(note_list, "\n- ")
-end
 
 --- Build sticky context for the given action and selected files.
 ---@param action ActionType
@@ -79,11 +38,9 @@ end
 local function build_sticky(action, selected_files)
 	local file = {
 		Bug = sticky.build_file_contexts(selected_files),
-		Issues = sticky.build_file_contexts(selected_files),
 	}
 	local register = {
 		Bug = "system_clipboard",
-		Issues = nil,
 	}
 
 	return sticky.build({
@@ -100,24 +57,17 @@ end
 local function build_system_prompt(action, restored_selection)
 	local role = {
 		Bug = "assistant",
-		Issues = "assistant",
 	}
 	local question_focus = {
 		Bug = "selection",
-		Issues = "selection",
-	}
-	local format = {
-		Bug = "fix_bug",
-		Issues = nil,
 	}
 
 	return system_prompt.build({
 		role = role[action],
 		character = "ai",
-		guideline = { change_code = true, localization = true },
+		guideline = { change_code = true, localization = true, software_principles = true },
 		specialties = restored_selection and restored_selection.filetype or nil,
 		question_focus = question_focus[action],
-		format = format[action],
 	})
 end
 
@@ -125,13 +75,13 @@ end
 ---@param action ActionType
 ---@param opts FixActionOpts
 local function open_window(action, opts)
-	local prompt = build_prompt(action, opts.input_issues)
+	local prompt = prompts[action]
 	if not prompt then
 		return
 	end
 
 	local save_chat = function(response)
-		chat_history.save(response, { used_prompt = prompt, tag = "Review" })
+		chat_history.save(response, { used_prompt = prompt, tag = "Fix" })
 		return response
 	end
 
@@ -174,25 +124,14 @@ local function select_files(action, opts)
 	fzf_lua.files({ prompt = "Related Files> ", actions = { ["default"] = callback }, multi = true })
 end
 
---- Prompt user for issues input and proceed to file selection for the given action.
----@param action ActionType
-local input_issues = function(action)
-	local ui_opts = { prompt = "Write issues> " }
-	vim.ui.input(ui_opts, function(issues)
-		if not issues or issues == "" then
-			return
-		end
-		select_files(action, { input_issues = issues })
-	end)
-end
-
 local next = {
-	Bug = select_files,
-	Issues = input_issues,
+	Bug = function(target)
+		select_files(target, {})
+	end,
 }
 
 M.execute = function()
-	local actions = { "Bug", "Issues" }
+	local actions = { "Bug" }
 	local ui_opts = { prompt = "Select action> " }
 	vim.ui.select(actions, ui_opts, function(action)
 		if not action or action == "" then
