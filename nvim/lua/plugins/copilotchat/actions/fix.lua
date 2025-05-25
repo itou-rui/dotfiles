@@ -115,7 +115,7 @@ local function build_system_prompt(action, restored_selection)
 	return system_prompt.build({
 		role = role[action],
 		character = "ai",
-		guideline = { change_code = true, localization = true, software_principles = true },
+		guideline = { change_code = true, localization = true, software_principles = true, message_markup = true },
 		specialties = restored_selection and restored_selection.filetype or nil,
 		question_focus = question_focus[action],
 	})

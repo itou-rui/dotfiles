@@ -4,11 +4,11 @@ local system_prompt = require("plugins.copilotchat.utils.system_prompt")
 
 ---@type table<Role, Guideline>
 local guideline = {
-	assistant = { change_code = true, localization = true, software_principles = true },
-	teacher = { localization = true },
-	reviewer = { localization = true, software_principles = true },
-	debugger = { change_code = true, localization = true },
-	documenter = { change_code = true, localization = true },
+	assistant = { change_code = true, localization = true, software_principles = true, message_markup = true },
+	teacher = { localization = true, message_markup = true },
+	reviewer = { localization = true, software_principles = true, message_markup = true },
+	debugger = { change_code = true, localization = true, message_markup = true },
+	documenter = { change_code = true, localization = true, message_markup = true },
 }
 
 ---@type table<Role, QuestionFocus|nil>

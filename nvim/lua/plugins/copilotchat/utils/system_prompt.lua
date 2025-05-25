@@ -16,6 +16,7 @@
 ---@field change_code boolean|nil
 ---@field localization boolean|nil
 ---@field software_principles boolean|nil
+---@field message_markup boolean|nil
 
 ---@alias QuestionFocus "selection"
 
@@ -183,6 +184,9 @@ local function check_build_cache_validity(opts, cache_key)
 		if opts.guideline.software_principles then
 			table.insert(files_to_check, config_path .. "guidelines/software_principles.md")
 		end
+		if opts.guideline.message_markup then
+			table.insert(files_to_check, config_path .. "guidelines/message_markup.md")
+		end
 	end
 
 	if opts.question_focus then
@@ -313,6 +317,9 @@ M.build = function(opts)
 		end
 		if opts.guideline.software_principles then
 			table.insert(prompt_parts, load_prompt_cached(prompt_path("guidelines/software_principles.md")))
+		end
+		if opts.guideline.message_markup then
+			table.insert(prompt_parts, load_prompt_cached(prompt_path("guidelines/message_markup.md")))
 		end
 	end
 

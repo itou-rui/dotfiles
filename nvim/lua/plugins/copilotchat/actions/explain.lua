@@ -83,7 +83,7 @@ local build_system_prompt = function(target, opts)
 	return system_prompt.build({
 		role = "teacher",
 		character = "ai",
-		guideline = { localization = true },
+		guideline = { localization = true, message_markup = true },
 		specialties = opts and opts.restored_selection and opts.restored_selection.filetype or nil,
 		question_focus = question_focus,
 	})

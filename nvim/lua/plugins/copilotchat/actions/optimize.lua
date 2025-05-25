@@ -59,8 +59,8 @@ local function build_system_prompt(target, restored_selection)
 		Text = "documenter",
 	}
 	local guideline = {
-		Code = { change_code = true, localization = true, software_principles = true },
-		Text = { change_code = true, localization = true },
+		Code = { change_code = true, localization = true, software_principles = true, message_markup = true },
+		Text = { change_code = true, localization = true, message_markup = true },
 	}
 	local specialties = {
 		Code = restored_selection and restored_selection.filetype or nil,
