@@ -1,4 +1,4 @@
----@alias TranslateTarget "Text"|"Program"
+---@alias TranslateTarget "Text"|"Code"
 
 ---@class TranslateOpts
 ---@field programming_language string|nil
@@ -41,7 +41,7 @@ Please localize the natural language content in the selected range to `%s`, payi
 - Use native expressions appropriate for the target locale (`%s`)
 ]],
 
-	Program = [[
+	Code = [[
 Please fully reproduce the selected functionality in "%s", paying attention to the following:
 
 **Important**:
@@ -62,7 +62,7 @@ Please fully reproduce the selected functionality in "%s", paying attention to t
 local build_sticky = function(target, opts)
 	local file = nil
 
-	if target == "Program" then
+	if target == "Code" then
 		file = sticky.build_file_contexts(opts.selected_files)
 	end
 
@@ -77,14 +77,14 @@ end
 --- @param opts TranslateOpts
 --- @return string
 local build_system_prompt = function(target, opts)
-	local role = { Text = "documenter", Program = "assistant" }
+	local role = { Text = "documenter", Code = "assistant" }
 	local guideline = {
 		Text = { change_code = true, localization = true },
-		Program = { change_code = true, localization = true, software_principles = true },
+		Code = { change_code = true, localization = true, software_principles = true },
 	}
 	local specialties = {
 		Text = nil,
-		Program = opts.restored_selection and { opts.restored_selection.filetype, opts.programming_language }
+		Code = opts.restored_selection and { opts.restored_selection.filetype, opts.programming_language }
 			or { opts.programming_language },
 	}
 
@@ -112,7 +112,7 @@ local open_window = function(target, opts)
 	end
 
 	local callback_selection = function(source)
-		if target == "Text" or target == "Program" then
+		if target == "Text" or target == "Code" then
 			return chat_select.visual(source) or chat_select.buffer(source)
 		end
 		return false
@@ -185,11 +185,11 @@ end
 
 local next = {
 	Text = select_user_language,
-	Program = select_programming_language,
+	Code = select_programming_language,
 }
 
 M.execute = function()
-	local targets = { "Text", "Program" }
+	local targets = { "Text", "Code" }
 	local ui_opts = { prompt = "Select target> " }
 	vim.ui.select(targets, ui_opts, function(target)
 		if not target or target == "" then
