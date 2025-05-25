@@ -1,4 +1,4 @@
----@alias ActionType "Bug"|"Issues"
+---@alias ActionType "Bug"|"Diagnostics"|"Issues"
 ---@class FixActionOpts
 ---@field selected_files table|nil
 ---@field input_issues string|nil
@@ -29,6 +29,50 @@ Please fix bugs in the selected code range, paying attention to the following po
 - If `vim_register_0` is not provided, respond only with `"**Copy the stack trace to the clipboard**"` and end this task.
 - After correcting the bug, explain its location, root cause, and the reason for the correction. If necessary, conclude with an ASCII art diagram illustrating the bug's flow.
 ]],
+
+	Diagnostics = [[
+Please fix the "diagnosed" issues in the selected range based on the following instructions:
+
+- Determine whether it is appropriate to address the diagnosed issues by considering the provided related files and code
+- Apply software principles
+- If the diagnosed issues affect other parts of the code, also fix those affected areas
+
+**Important**:
+
+- If the diagnosed issues affect other parts of the code, also fix those affected areas
+- Maintain compatibility to avoid breaking existing functionality
+- Avoid negative impacts on performance
+- If you make changes to areas not directly diagnosed, briefly explain the reason for those changes
+- If you determine that it is not appropriate to address the diagnosed issues, briefly explain the reason
+]],
+
+	Issues = [[
+Please identify and fix the following types of issues in the selected range:
+
+- Logic Errors: Infinite loops, logical mistakes in conditionals, incorrect use of operators
+- Boundary Errors: Out-of-bounds array access, null/undefined references, division by zero
+- API Misuse: Incorrect argument order in functions, misunderstanding of return values, use of deprecated methods
+- Type Errors: Failed type conversions, type mismatches, insufficient type checking
+- Asynchronous Processing Errors**: Missing awaits, unhandled Promises, race conditions
+- Memory Leaks: Failure to release resources, forgetting to remove event listeners
+- Security Issues: Insufficient input validation, SQL injection, XSS vulnerabilities
+- Performance Issues: Redundant processing, use of inefficient algorithms
+
+**Fixing Procedure**
+
+1. Identify the Issue: Clearly describe the discovered problem
+2. Analyze the Impact: Assess the effect on related files
+3. Implement the Fix: Provide code that resolves the issue
+4. Suggest Tests: Indicate how to verify that the fix works correctly
+
+**Important**
+
+- Use the information from related files to help identify issues
+- Carefully consider the fix to avoid introducing new problems
+- Maintain compatibility and do not break existing functionality
+- Clearly explain the reason for the fix and the expected effect
+- If no problems are found, reply "**There were no problems with the selected code!**" to conclude the response.
+]],
 }
 
 --- Build sticky context for the given action and selected files.
@@ -38,6 +82,8 @@ Please fix bugs in the selected code range, paying attention to the following po
 local function build_sticky(action, selected_files)
 	local file = {
 		Bug = sticky.build_file_contexts(selected_files),
+		Diagnostics = sticky.build_file_contexts(selected_files),
+		Issues = sticky.build_file_contexts(selected_files),
 	}
 	local register = {
 		Bug = "system_clipboard",
@@ -57,9 +103,13 @@ end
 local function build_system_prompt(action, restored_selection)
 	local role = {
 		Bug = "assistant",
+		Diagnostics = "assistant",
+		Issues = "assistant",
 	}
 	local question_focus = {
 		Bug = "selection",
+		Diagnostics = "selection",
+		Issues = "selection",
 	}
 
 	return system_prompt.build({
@@ -112,26 +162,23 @@ end
 
 --- Prompt user to select files and handle selection for the given action and options.
 ---@param action ActionType
----@param opts FixActionOpts
-local function select_files(action, opts)
-	opts = opts or {}
+local function select_files(action)
 	local callback = function(selected_files)
 		on_selected_files(action, {
 			selected_files = selected_files,
-			input_issues = opts.input_issues,
 		})
 	end
 	fzf_lua.files({ prompt = "Related Files> ", actions = { ["default"] = callback }, multi = true })
 end
 
 local next = {
-	Bug = function(target)
-		select_files(target, {})
-	end,
+	Bug = select_files,
+	Diagnostics = select_files,
+	Issues = select_files,
 }
 
 M.execute = function()
-	local actions = { "Bug" }
+	local actions = { "Bug", "Diagnostics", "Issues" }
 	local ui_opts = { prompt = "Select action> " }
 	vim.ui.select(actions, ui_opts, function(action)
 		if not action or action == "" then
