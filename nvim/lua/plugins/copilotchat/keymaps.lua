@@ -31,14 +31,6 @@ return {
 		mode = { "n", "v" },
 	},
 
-	--  Perplexity Search
-	{
-		"<leader>as",
-		require("plugins.copilotchat.chats.search"),
-		desc = "Perplexity Search",
-		mode = { "n", "v" },
-	},
-
 	-- Explain
 	{
 		"<leader>ae",
