@@ -1,4 +1,4 @@
----@alias FiletypeConfigPrompt "angular"|"javascript"|"typescript"|"ansible"|"css"|"docker"|"python"|"neovim"|"rust"|"react"|"zsh"|"gitcommit"|"documentation"
+---@alias FiletypeConfigPrompt "angular"|"javascript"|"typescript"|"ansible"|"css"|"docker"|"python"|"neovim"|"rust"|"react"|"zsh"|"lua"|"gitcommit"|"documentation"|"analysis"
 
 ---@class FiletypeConfig
 ---@field patterns string[]|nil
@@ -76,6 +76,10 @@ M.FILETYPE_CONFIGS = {
 	text = {
 		filetypes = { "text" },
 		prompts = { "documentation" },
+	},
+	analysis = {
+		filetypes = { "analysis" },
+		prompts = { "analysis", "css", "typescript", "javascript", "react", "python", "neovim", "lua", "zsh" },
 	},
 }
 

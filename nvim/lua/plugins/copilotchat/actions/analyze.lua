@@ -9,78 +9,181 @@ local selection = require("plugins.copilotchat.utils.selection")
 
 local M = {}
 
----@alias AnalyzeTarget "Variable"
+---@alias AnalyzeTarget "Practicality"|"Security"|"Performance"|"Maintainability"
 
 ---@class AnalyzeOpts
 ---@field selected_files table|nil
 ---@field restored_selection RestoreSelection
 
+local common_steps = [[
+**Analyze steps**:
+
+  - Step 1: Understand the input information
+    - Check the target file name, function name, line numbers, and code block range
+    - Confirm the presence of comments or docstrings to understand the intended specification or purpose
+    - Identify the function's inputs and outputs, as well as the variables, arguments, and return values used
+
+  - Step 2: Identify scope and structure
+    - Analyze the structure of the function body (sequential processing, conditionals, loops, recursion, exception handling, etc.)
+    - Understand code block divisions and nesting depth
+    - Clarify the role of the logic and the intent of each section
+
+  - Step 3: Identify dependencies
+    - Extract dependencies on external modules (imports) and internal modules (other functions or constants)
+    - Understand the potential impact and side effects when changes are made
+
+  - Step 4: Identify side effects and state changes
+    - Extract side effects such as global variable modifications, I/O, database access, or API communication
+    - Track where state changes occur
+]]
+
+local analysis_items = {
+	Practicality = [[
+  - Step 5: Practicality Assessment
+    - Evaluate usefulness in actual business or project scenarios
+    - Consider code reusability and versatility
+    - Judge the feasibility and practicality of the implementation
+
+  - Step 6: Identify Practicality Issues
+    - Reduced practicality due to excessive abstraction or complexity
+    - Excessive dependency on specific environments
+    - Inconsistencies with performance requirements
+    - Difficulties in operation and maintenance
+
+  - Step 7: Practicality Metrics
+    - Appropriateness of function granularity
+    - Usability of interfaces
+    - Practicality of error handling
+]],
+
+	Security = [[
+  - Step 5: Security Risk Assessment
+    - Check adequacy of input validation
+    - Evaluate implementation of authentication and authorization
+    - Verify handling of confidential information
+    - Confirm security of communication with external systems
+
+  - Step 6: Detect Vulnerability Patterns
+    - Vulnerabilities such as SQL injection, XSS, CSRF, etc.
+    - Hardcoded credentials or secret keys
+    - Improper permission settings or access control
+    - Insecure encryption or communication
+
+  - Step 7: Security Metrics
+    - Input validation coverage
+    - Degree of authentication and authorization implementation
+    - Adherence to secure programming principles
+]],
+
+	Performance = [[
+  - Step 5: Performance Characteristics Assessment
+    - Analyze time complexity (Big O notation)
+    - Evaluate space complexity and memory usage patterns
+    - Check efficiency of I/O operations
+    - Verify appropriateness of data structure selection
+
+  - Step 6: Identify Performance Bottlenecks
+    - Inefficient loops or algorithms
+    - Unnecessary memory allocation or redundant computation
+    - Insufficient optimization of database queries
+    - Wait times due to synchronous processing
+
+  - Step 7: Performance Metrics
+    - Complexity of computation
+    - Memory usage efficiency
+    - Degree of I/O operation optimization
+]],
+
+	Maintainability = [[
+  - Step 5: Maintainability Assessment
+    - Evaluate code readability and understandability
+    - Check scope of impact and ease of modification when changes are made
+    - Verify testability and ease of debugging
+    - Confirm documentation status
+ 
+  - Step 6: Identify Factors Hindering Maintainability
+    - Overly complex functions or classes
+    - Tight coupling or circular dependencies
+    - Magic numbers or hardcoded values
+    - Inappropriate naming or insufficient comments
+ 
+  - Step 7: Maintainability Metrics
+    - Cyclomatic complexity
+    - Degree of coupling and cohesion
+    - Comment rate and level of documentation
+]],
+}
+
+local evaluation_criteria = {
+	Practicality = [[
+- Practicality: 30 points
+- Reusability: 25 points
+- Maintainability: 25 points
+- Operability
+]],
+
+	Security = [[
+- Input Validation: 30 points
+- Authentication/Authorization: 25 points
+- Data Protection: 25 points
+- Secure Programming: 20 points
+]],
+
+	Performance = [[
+- Time Complexity: 30 points
+- Space Complexity: 25 points
+- I/O Efficiency: 25 points
+- Data Structure Selection: 20 points
+]],
+
+	Maintainability = [[
+- Readability: 30 points
+- Ease of Modification: 25 points
+- Testability: 25 points
+- Documentation: 20 points
+]],
+}
+
+local common_important = [[
+- `<analysis_content>` describes the detected issue category (e.g., "Complexity Issue", "Security Risk").
+- `<analysis_content.content_description>` concisely explains the specific issue and always includes the relevant line number.
+- Add a status icon before each item:
+  - ✘ Critical issue
+  - ⚠ Recommended improvement
+  - ✔ Good status
+- Line numbers must accurately reference the actual code lines.
+- Improvement suggestions should be concrete and actionable.
+]]
+
 local prompts = {
-	Variable = "Please analyze the provided file to track the selected variable and reveal details.",
-	Function = "nalyze the selected function and provide comprehensive metrics using the exact format below with all quantitative data and detailed breakdowns.",
+	Practicality = 'Analyze and evaluate the "practicality" of the selected code range using the following steps.'
+		.. "\n\n"
+		.. common_steps
+		.. "\n"
+		.. analysis_items.Practicality
+		.. "\n"
+		.. "**Evaluation criteria**:\n\n"
+		.. evaluation_criteria.Practicality
+		.. "\n"
+		.. "**Important**:\n\n"
+		.. common_important,
 }
-
-local check_lists = {
-	Variable = {
-		"Determine if the selection is a variable.",
-		"Identify all types of operations on the variable: assignment, update, addition, subtraction, multiplication, division, and deletion.",
-		"List all locations where the variable is used if there are multiple usages.",
-	},
-	Function = {
-		"Follow the exact format provided in the prompt",
-		"Use specific numbers for all metrics (0 if none, not 'N/A' or 'none')",
-		"Keep descriptions under 100 characters each",
-		"Use predefined values for categorized fields (read/write/update, for/while loops, etc.)",
-		"Provide concrete analysis data rather than generic explanations",
-		"Include line numbers and file references where applicable",
-		"Create ASCII art for nesting structure visualization",
-		"Categorize all findings into the specified sections with exact counts",
-	},
-}
-
-local function build_prompt(target)
-	local prompt = prompts[target]
-	local check_list = check_lists[target]
-
-	if not prompt or prompt == "" then
-		return nil
-	end
-
-	if not check_list or #check_list == 0 then
-		return prompt
-	end
-
-	return prompt .. "\n\n**Checklist**:\n- " .. table.concat(check_list, "\n- ")
-end
 
 local function build_sticky(target, opts)
-	local file = {
-		Variable = sticky.build_file_contexts(opts and opts.selected_files or nil),
-		Function = sticky.build_file_contexts(opts and opts.selected_files or nil),
-	}
 	return sticky.build({
 		reply_language = system_languages.default,
-		file = file[target],
+		file = sticky.build_file_contexts(opts and opts.selected_files or nil),
 	})
 end
 
 local function build_system_prompt(target, restored_selection)
-	local question_focus = {
-		Variable = "selection",
-		Function = "selection",
-	}
-	local format = {
-		Variable = "analyze_variable",
-		Function = "analyze_function",
-	}
-
 	return system_prompt.build({
-		role = "teacher",
+		role = "analyst",
 		character = "ai",
-		guideline = { localization = true },
-		specialties = restored_selection and restored_selection.filetype or nil,
-		question_focus = question_focus[target],
-		format = format[target],
+		guideline = { change_code = true, localization = true, software_principles = true, message_markup = true },
+		specialties = restored_selection and { restored_selection.filetype, "analysis" } or { "analysis" },
+		question_focus = "selection",
+		format = "analyze",
 	})
 end
 
@@ -88,7 +191,7 @@ end
 ---@param target AnalyzeTarget
 ---@param opts AnalyzeOpts
 local function open_window(target, opts)
-	local prompt = build_prompt(target)
+	local prompt = prompts[target]
 	if not prompt then
 		return
 	end
@@ -126,19 +229,14 @@ local function select_files(target)
 	fzf_lua.files({ prompt = "Files> ", actions = { ["default"] = callback }, multi = true })
 end
 
-local next = {
-	Variable = select_files,
-	Function = select_files,
-}
-
 M.execute = function()
-	local targets = { "Variable", "Function" }
+	local targets = { "Practicality", "Security", "Performance", "Maintainability" }
 	local ui_opts = { prompt = "Select target> " }
 	vim.ui.select(targets, ui_opts, function(target)
 		if not target or target == "" then
 			return
 		end
-		next[target](target)
+		select_files(target)
 	end)
 end
 

@@ -3,6 +3,7 @@
 ---| "teacher"
 ---| "reviewer"
 ---| "documenter"
+---| "analyst"
 
 ---@alias Character
 ---| "ai"
@@ -20,7 +21,7 @@
 
 ---@alias QuestionFocus "selection"
 
----@alias Format "review"|"commit"|"developer_document"|"analyze_variable"|"analyze_function"|"commit_basic"|"commit_merge"|"commit_squash"|"pull_request"
+---@alias Format "review"|"commit_basic"|"commit_merge"|"commit_squash"|"pull_request"|"analyze"
 
 ---@class BuildOptions
 ---@field role Role|nil
@@ -224,6 +225,7 @@ M.roles = {
 	"teacher",
 	"reviewer",
 	"documenter",
+	"analyst",
 }
 
 ---@type Character[]
