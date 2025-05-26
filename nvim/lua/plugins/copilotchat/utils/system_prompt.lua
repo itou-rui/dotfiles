@@ -21,7 +21,7 @@
 
 ---@alias QuestionFocus "selection"
 
----@alias Format "review"|"commit_basic"|"commit_merge"|"commit_squash"|"pull_request"|"analyze"
+---@alias Format "review"|"basic_commit"|"merge_commit"|"squash_commit"|"pull_request"|"analyze"
 
 ---@class BuildOptions
 ---@field role Role|nil

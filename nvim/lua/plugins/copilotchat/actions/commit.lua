@@ -39,10 +39,10 @@ local note_lists = {
 }
 
 local format = {
-	Basic = "commit_basic",
-	WIP = "commit_basic",
-	Merge = "commit_merge",
-	["Squash Merge"] = "commit_squash",
+	Basic = "basic_commit",
+	WIP = "basic_commit",
+	Merge = "merge_commit",
+	["Squash Merge"] = "squash_commit",
 }
 
 local fallback_chat_title = {
