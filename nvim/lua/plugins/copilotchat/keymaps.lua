@@ -87,6 +87,14 @@ return {
 		mode = { "n", "v" },
 	},
 
+	-- Generate
+	{
+		"<leader>ag",
+		require("plugins.copilotchat.actions.generate").execute,
+		desc = "Generate",
+		mode = { "n", "v" },
+	},
+
 	-- Chat
 	{
 		"<leader>aC",
@@ -95,25 +103,18 @@ return {
 		mode = { "n", "v" },
 	},
 
-	-- Git
-	{ "<leader>ag", "", desc = "Git", mode = { "n", "v" } },
+	-- Commit
 	{
-		"<leader>agc",
+		"<leader>ac",
 		require("plugins.copilotchat.actions.commit").execute,
 		desc = "Commit",
-		mode = { "n", "v" },
-	},
-	{
-		"<leader>agp",
-		require("plugins.copilotchat.actions.git.pullrequest"),
-		desc = "Pull Request",
 		mode = { "n", "v" },
 	},
 
 	-- Utils
 	{ "<leader>au", "", desc = "Utils", mode = { "n", "v" } },
 	{
-		"<leader>aut",
+		"<leader>aT",
 		require("plugins.copilotchat.actions.translate").execute,
 		desc = "Translate",
 		mode = { "n", "v" },
