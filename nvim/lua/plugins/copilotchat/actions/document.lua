@@ -17,71 +17,55 @@ local selection = require("plugins.copilotchat.utils.selection")
 local M = {}
 
 local prompts = {
-	["Comment"] = "Add concise and clear comments to the selected code.",
-	["Code Document"] = "Generate detailed documentation comments for the selected code, including its functionality, arguments, and return values.",
-	["API Document"] = "Document the usage, arguments, return values, and important notes of the selected API in clear language.",
-	["Developer Document"] = "Document the design intent, implementation details, and usage of the selected code in detail for developers.",
+	["Comment"] = [[
+Add concise and clear comments to the selected code.
+
+**Important**:
+
+- Consider not only the selected line but also related code and definitions from other files.
+- Focus on clarity and brevity.
+- Explain the intent and behavior, not just what the code does.
+]],
+	["Code Document"] = [[
+Generate detailed documentation comments for the selected code, including its functionality, arguments, and return values.
+
+**Important**:
+
+- Follow the language's documentation style (e.g., TSDoc for TypeScript).
+- Describe the function/class purpose, arguments, return values, and typical usage.
+- Reference related code context if available.
+]],
+	["API Document"] = [[
+Document the usage, arguments, return values, and important notes of the selected API in clear language.
+
+**Important**:
+
+- Include usage examples and describe input/output parameters.
+- Document error cases and important constraints.
+- Incorporate relevant context from related files or definitions.
+]],
+	["Developer Document"] = [[
+Document the design intent, implementation details, and usage of the selected code in detail for developers.
+
+**Important**:
+
+- Explain the architectural context, design patterns, and key decisions.
+- Include references to related modules, files, or components.
+- Make the documentation suitable for README.md, pull requests, or new documentation files.
+]],
 }
-
-local note_lists = {
-	["Comment"] = {
-		"Consider not only the selected line but also related code and definitions from other files.",
-		"Focus on clarity and brevity.",
-		"Explain the intent and behavior, not just what the code does.",
-	},
-	["Code Document"] = {
-		"Follow the language's documentation style (e.g., TSDoc for TypeScript).",
-		"Describe the function/class purpose, arguments, return values, and typical usage.",
-		"Reference related code context if available.",
-	},
-	["API Document"] = {
-		"Include usage examples and describe input/output parameters.",
-		"Document error cases and important constraints.",
-		"Incorporate relevant context from related files or definitions.",
-	},
-	["Developer Document"] = {
-		"Explain design intent and implementation details.",
-		"Reference architectural context and related modules.",
-		"Make the documentation suitable for README.md, pull requests, or new documentation files.",
-	},
-}
-
---- Build the prompt string for the given document action.
----@param action DocumentAction
----@return string|nil
-local build_prompt = function(action)
-	local prompt = prompts[action]
-	local note_list = note_lists[action]
-
-	if not prompt or prompt == "" then
-		return nil
-	end
-
-	if not note_list or #note_list == 0 then
-		return prompt
-	end
-
-	return prompt .. "\n\n**Note**:\n\n- " .. table.concat(note_list, "\n- ")
-end
 
 --- Build the system prompt for the given document action and selection.
 ---@param action DocumentAction
 ---@param opts DocumentOpts
 ---@return string
 local build_system_prompt = function(action, opts)
-	local format = nil
-
-	if action == "Developer Document" then
-		format = "developer_document"
-	end
-
 	return system_prompt.build({
 		role = "documenter",
 		character = "ai",
 		guideline = { change_code = true, localization = true },
 		specialties = opts.restored_selection and { opts.restored_selection.filetype, "markdown" } or { "markdown" },
 		question_focus = "selection",
-		format = format,
 	})
 end
 
@@ -101,7 +85,7 @@ end
 ---@param action DocumentAction
 ---@param opts DocumentOpts
 local open_window = function(action, opts)
-	local prompt = build_prompt(action)
+	local prompt = prompts[action]
 	if not prompt then
 		return
 	end
